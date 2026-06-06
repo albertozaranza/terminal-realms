@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { Equipment, Player } from "../../types";
+import type { Equipment, Inventory, Player } from "../../types";
 import {
   applyLoadoutToPlayer,
   createLoadout,
   equip,
+  equipFromInventory,
   getEquippedItems,
   getStatBonus,
   unequip,
+  unequipToInventory,
 } from "../equipment";
+import { addItem } from "../inventory";
 
 const sword: Equipment = {
   id: "sword",
@@ -119,5 +122,45 @@ describe("applyLoadoutToPlayer", () => {
 
   it("returns a copy equal to the base when nothing is equipped", () => {
     expect(applyLoadoutToPlayer(base, createLoadout())).toEqual(base);
+  });
+});
+
+describe("equipFromInventory / unequipToInventory", () => {
+  const emptyInventory: Inventory = { items: [], gold: 0 };
+
+  it("moves an item from the backpack into its slot", () => {
+    const inventory = addItem(emptyInventory, sword);
+    const result = equipFromInventory({ inventory, loadout: createLoadout() }, "sword");
+    expect(result.loadout.weapon).toBe(sword);
+    expect(result.inventory.items).toHaveLength(0);
+  });
+
+  it("returns the swapped item to the backpack", () => {
+    const inventory = addItem(addItem(emptyInventory, sword), betterSword);
+    let state = equipFromInventory({ inventory, loadout: createLoadout() }, "sword");
+    state = equipFromInventory(state, "better_sword");
+    expect(state.loadout.weapon).toBe(betterSword);
+    // A espada trocada volta para a mochila.
+    expect(state.inventory.items.map((slot) => slot.item)).toContain(sword);
+  });
+
+  it("throws when equipping a missing item", () => {
+    expect(() => equipFromInventory({ inventory: emptyInventory, loadout: {} }, "ghost")).toThrow();
+  });
+
+  it("unequips a slot back into the backpack", () => {
+    const equipped = equipFromInventory(
+      { inventory: addItem(emptyInventory, helmet), loadout: createLoadout() },
+      "helmet",
+    );
+    const result = unequipToInventory(equipped, "helmet");
+    expect(result.loadout.helmet).toBeUndefined();
+    expect(result.inventory.items.map((slot) => slot.item)).toContain(helmet);
+  });
+
+  it("leaves the state unchanged when unequipping an empty slot", () => {
+    const result = unequipToInventory({ inventory: emptyInventory, loadout: {} }, "ring");
+    expect(result.inventory.items).toHaveLength(0);
+    expect(result.loadout.ring).toBeUndefined();
   });
 });

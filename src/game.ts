@@ -16,14 +16,26 @@ import {
 } from "./core";
 import {
   applyLoadoutToPlayer,
+  equipFromInventory,
   hasSave,
   loadGame,
   rollLoot,
   type SaveOptions,
   saveGame,
   totalItems,
+  unequipToInventory,
 } from "./systems";
-import type { CharacterClass, Enemy, Item, Player, Region, Skill } from "./types";
+import type {
+  CharacterClass,
+  Enemy,
+  EquipmentSlot,
+  InventorySlot,
+  Item,
+  Loadout,
+  Player,
+  Region,
+  Skill,
+} from "./types";
 import { getLanguage, type Language, type Rng, randomInt, setLanguage, t } from "./utils";
 
 /** Nome localizado de uma entidade pelo seu id (fallback para o id). */
@@ -32,7 +44,20 @@ function localizedName(id: string): string {
 }
 
 /** Ação escolhida no menu de exploração. */
-export type ExploreAction = "explore" | "boss" | "save" | "menu";
+export type ExploreAction = "explore" | "boss" | "inventory" | "save" | "menu";
+
+/** Contexto da tela de inventário (somente leitura, para a UI desenhar). */
+export interface InventoryContext {
+  loadout: Loadout;
+  items: readonly InventorySlot[];
+  gold: number;
+}
+
+/** Escolha do jogador na tela de inventário. */
+export type InventoryChoice =
+  | { type: "equip"; itemId: string }
+  | { type: "unequip"; slot: EquipmentSlot }
+  | { type: "close" };
 
 /** Escolha do jogador durante um turno de combate. */
 export type CombatChoice = "attack" | "flee" | { type: "skill"; skill: Skill };
@@ -92,6 +117,8 @@ export interface GameIO {
   chooseLanguage(current: Language): Promise<Language>;
   exploreAction(context: ExploreContext): Promise<ExploreAction>;
   combatAction(context: CombatContext, skills: readonly CombatSkillOption[]): Promise<CombatChoice>;
+  /** Tela de inventário: equipar/desequipar itens ou fechar. */
+  inventory(context: InventoryContext): Promise<InventoryChoice>;
   /** Tela dedicada de vitória (chefe). Opcional: a UI pode implementá-la. */
   victory?(context: EndContext): void | Promise<void>;
   /** Tela dedicada de fim de jogo (derrota). Opcional. */
@@ -220,6 +247,44 @@ async function resolveCombat(
   return { state: rewarded, outcome: "victory" };
 }
 
+/**
+ * Loop da tela de inventário: equipa/desequipa itens conforme a escolha do
+ * jogador até ele fechar. Persiste o estado se houve alteração. Retorna o
+ * GameState atualizado.
+ */
+async function manageInventory(
+  io: GameIO,
+  state: GameState,
+  options: RunGameOptions,
+): Promise<GameState> {
+  let current = state;
+  let changed = false;
+
+  while (true) {
+    const choice = await io.inventory({
+      loadout: current.loadout,
+      items: current.inventory.items,
+      gold: current.inventory.gold,
+    });
+    if (choice.type === "close") {
+      break;
+    }
+
+    const equipState = { inventory: current.inventory, loadout: current.loadout };
+    const next =
+      choice.type === "equip"
+        ? equipFromInventory(equipState, choice.itemId)
+        : unequipToInventory(equipState, choice.slot);
+    current = { ...current, inventory: next.inventory, loadout: next.loadout };
+    changed = true;
+  }
+
+  if (changed) {
+    await saveGame(current, options);
+  }
+  return current;
+}
+
 /** Gera o próximo encontro da exploração. */
 function nextEncounter(
   state: GameState,
@@ -252,6 +317,10 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
     if (action === "save") {
       await saveGame(state, options);
       await io.render(t("game.saved"));
+      continue;
+    }
+    if (action === "inventory") {
+      state = await manageInventory(io, state, options);
       continue;
     }
     if (action === "boss") {

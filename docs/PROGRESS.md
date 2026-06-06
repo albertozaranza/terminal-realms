@@ -53,6 +53,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T051 | Unificar inventário (conclui T040) | `GameState.inventory` é o inventário canônico; campo `Player.inventory` removido (era duplicado e nunca atualizado — causava drops não aparecerem no HUD). `ExploreContext`/`ExploreScreenView` passam `itemCount` derivado de `state.inventory.items.length` |
 | T052 | Itens empilháveis | `Inventory.items` agora é `InventorySlot[]` (`{ item, quantity }`). Consumíveis empilham por id; equipamento não empilha (pilha individual). `addItem`/`removeItem` operam por unidade; novo `totalItems`. Save migra formato antigo (`Item[]`) reagrupando via `addItem` (ver D-06) |
 | T055 | Equipar (fundação) | `loadout` adicionado ao `GameState` e persistido no save (default `{}` em saves antigos). Novo `applyLoadoutToPlayer` aplica os bônus sobre uma cópia do jogador usada no combate; após o combate só hp/mana voltam ao jogador-base (atributos-base nunca recebem o bônus — ver D-07). Executada antes da T053; a interação de equipar virá com a tela |
+| T053 | Tela de inventário (estilo Tibia) | `inventoryScreen` paper-doll: slots de equipamento ao redor do corpo (mini-painéis, nome truncado p/ grade uniforme) + mochila com quantidades + ouro. Ação "Inventário" no menu de exploração; `GameIO.inventory` + loop `manageInventory` que equipa/desequipa via `equipFromInventory`/`unequipToInventory` (item ⇄ mochila) e salva ao fechar |
 
 ---
 

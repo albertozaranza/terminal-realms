@@ -17,9 +17,12 @@ import {
   type ExploreAction,
   type ExploreContext,
   type GameIO,
+  type InventoryChoice,
+  type InventoryContext,
   runGame,
 } from "./game";
-import type { CharacterClass } from "./types";
+import { isEquipment } from "./systems";
+import type { CharacterClass, EquipmentSlot } from "./types";
 import {
   GameRenderer,
   GrayListPrompt,
@@ -28,6 +31,7 @@ import {
   renderCreationIntro,
   renderExploreScreen,
   renderGameOverScreen,
+  renderInventoryScreen,
   renderLanguageScreen,
   renderMenuScreen,
   renderVictoryScreen,
@@ -121,12 +125,51 @@ const cliIO: GameIO = {
         choices: [
           { name: t("explore.explore"), value: "explore" },
           { name: t("explore.boss", { boss: t("name.goblin_king") }), value: "boss" },
+          { name: t("explore.inventory"), value: "inventory" },
           { name: t("explore.save"), value: "save" },
           { name: t("explore.menu"), value: "menu" },
         ],
       },
     ]);
     return action;
+  },
+
+  inventory: async (context: InventoryContext): Promise<InventoryChoice> => {
+    renderer.paint(renderInventoryScreen(context, renderer.width));
+
+    const equipChoices = context.items
+      .filter((slot) => isEquipment(slot.item))
+      .map((slot) => ({
+        name: t("inventory.equip", { item: t(slot.item.name) }),
+        value: `equip:${slot.item.id}`,
+      }));
+    const unequipChoices = Object.entries(context.loadout)
+      .filter(([, item]) => item !== undefined)
+      .map(([slot, item]) => ({
+        name: t("inventory.unequip", { item: t(item.name) }),
+        value: `unequip:${slot}`,
+      }));
+
+    const { action } = await inquirer.prompt<{ action: string }>([
+      {
+        type: "list",
+        name: "action",
+        message: t("inventory.action"),
+        choices: [
+          ...equipChoices,
+          ...unequipChoices,
+          { name: t("inventory.close"), value: "close" },
+        ],
+      },
+    ]);
+
+    if (action.startsWith("equip:")) {
+      return { type: "equip", itemId: action.slice("equip:".length) };
+    }
+    if (action.startsWith("unequip:")) {
+      return { type: "unequip", slot: action.slice("unequip:".length) as EquipmentSlot };
+    }
+    return { type: "close" };
   },
 
   combatAction: async (context: CombatContext, options: readonly CombatSkillOption[]) => {

@@ -42,6 +42,7 @@ function scriptIO(overrides: Partial<GameIO> = {}): { io: GameIO; outputs: strin
     chooseLanguage: async (current) => current,
     exploreAction: async () => "boss",
     combatAction: async () => "attack",
+    inventory: async () => ({ type: "close" }),
     ...overrides,
   };
   return { io, outputs };

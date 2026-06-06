@@ -1,4 +1,7 @@
-import type { Equipment, EquipmentSlot, Loadout, Player, StatKey } from "../types";
+import type { Equipment, EquipmentSlot, Inventory, Loadout, Player, StatKey } from "../types";
+import { t } from "../utils";
+import { addItem, removeItem } from "./inventory";
+import { isEquipment } from "./itemGuards";
 
 /**
  * Sistema de equipamentos — funções puras que retornam um novo Loadout
@@ -42,6 +45,46 @@ export function getStatBonus(loadout: Loadout, stat: StatKey): number {
     .flatMap((item) => item.modifiers)
     .filter((modifier) => modifier.stat === stat)
     .reduce((total, modifier) => total + modifier.value, 0);
+}
+
+/** Inventário e equipamentos vestidos — alvo das transições de equipar. */
+export interface EquipState {
+  inventory: Inventory;
+  loadout: Loadout;
+}
+
+/**
+ * Equipa, no slot correspondente, um equipamento que está na mochila:
+ * remove uma unidade do inventário, veste a peça e devolve à mochila o
+ * que estava no slot (se houver). Função pura.
+ *
+ * Lança erro se o item não existir no inventário ou não for equipável.
+ */
+export function equipFromInventory(state: EquipState, itemId: string): EquipState {
+  const slot = state.inventory.items.find((entry) => entry.item.id === itemId);
+  if (!slot) {
+    throw new Error(t("error.inventory.itemNotFound", { itemId }));
+  }
+  if (!isEquipment(slot.item)) {
+    throw new Error(t("error.equipment.notEquippable", { itemId }));
+  }
+
+  let inventory = removeItem(state.inventory, itemId);
+  const { loadout, previous } = equip(state.loadout, slot.item);
+  if (previous) {
+    inventory = addItem(inventory, previous);
+  }
+  return { inventory, loadout };
+}
+
+/**
+ * Desequipa um slot, devolvendo a peça (se houver) à mochila. Função pura;
+ * se o slot estiver vazio, o estado é devolvido inalterado.
+ */
+export function unequipToInventory(state: EquipState, slot: EquipmentSlot): EquipState {
+  const { loadout, previous } = unequip(state.loadout, slot);
+  const inventory = previous ? addItem(state.inventory, previous) : state.inventory;
+  return { inventory, loadout };
 }
 
 /**
