@@ -1,4 +1,4 @@
-import type { Enemy, Player } from "../types";
+import type { Enemy, Player, Skill, SkillResult } from "../types";
 import { computeDamage, getPlayerAttack } from "./damage";
 
 /** Situação atual do combate. */
@@ -11,6 +11,12 @@ export type Combatant = "player" | "enemy";
 export interface AttackOutcome {
   damage: number;
   targetHpRemaining: number;
+}
+
+/** Resultado do uso de uma habilidade. */
+export interface SkillUseOutcome {
+  result: SkillResult;
+  manaSpent: number;
 }
 
 /**
@@ -30,6 +36,8 @@ export class CombatEngine {
   protected currentTurn: Combatant = "player";
   protected round = 1;
   private started = false;
+  /** Cooldowns restantes (em rodadas) por id de habilidade. */
+  private readonly cooldowns = new Map<string, number>();
 
   constructor(player: Player, enemy: Enemy) {
     this.player = { ...player };
@@ -66,7 +74,59 @@ export class CombatEngine {
     } else {
       this.currentTurn = "player";
       this.round += 1;
+      this.tickCooldowns();
     }
+  }
+
+  /** Cooldown restante (em rodadas) de uma habilidade. */
+  getSkillCooldown(skillId: string): number {
+    return this.cooldowns.get(skillId) ?? 0;
+  }
+
+  isOnCooldown(skillId: string): boolean {
+    return this.getSkillCooldown(skillId) > 0;
+  }
+
+  /** Reduz em 1 o cooldown de todas as habilidades (mínimo 0). */
+  private tickCooldowns(): void {
+    for (const [skillId, remaining] of this.cooldowns) {
+      if (remaining <= 1) {
+        this.cooldowns.delete(skillId);
+      } else {
+        this.cooldowns.set(skillId, remaining - 1);
+      }
+    }
+  }
+
+  /**
+   * Usa uma habilidade do jogador: valida cooldown e mana, consome a
+   * mana, aplica o efeito (dano/cura) e registra o cooldown.
+   */
+  useSkill(skill: Skill): SkillUseOutcome {
+    this.ensureActable();
+    if (this.isOnCooldown(skill.id)) {
+      throw new Error(`CombatEngine: a habilidade "${skill.name}" está em cooldown.`);
+    }
+    if (this.player.mana < skill.manaCost) {
+      throw new Error(`CombatEngine: mana insuficiente para "${skill.name}".`);
+    }
+
+    this.player.mana -= skill.manaCost;
+    const result = skill.execute(this.player, this.enemy);
+
+    if (result.damage > 0) {
+      this.enemy.hp = Math.max(0, this.enemy.hp - result.damage);
+    }
+    if (result.healing > 0) {
+      this.player.hp = Math.min(this.player.maxHp, this.player.hp + result.healing);
+    }
+
+    if (skill.cooldown > 0) {
+      this.cooldowns.set(skill.id, skill.cooldown);
+    }
+    this.refreshStatus();
+
+    return { result, manaSpent: skill.manaCost };
   }
 
   /** Reavalia o estado a partir do HP dos combatentes. */

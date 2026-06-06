@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WarriorClass } from "../classes";
+import { ArcherClass, WarriorClass } from "../classes";
 import type { Enemy, Player } from "../types";
 import { CombatEngine } from "./CombatEngine";
 import { createCharacter } from "./createCharacter";
@@ -130,5 +130,55 @@ describe("CombatEngine — turnos", () => {
     combat.start();
     combat.playerAttack();
     expect(() => combat.endTurn()).toThrow();
+  });
+});
+
+describe("CombatEngine — habilidades e cooldowns", () => {
+  // Golpe Poderoso: manaCost 0, cooldown 3.
+  const golpePoderoso = new WarriorClass().getStartingSkills()[0];
+
+  it("coloca a habilidade em cooldown após o uso", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    expect(combat.isOnCooldown(golpePoderoso.id)).toBe(false);
+    combat.useSkill(golpePoderoso);
+    expect(combat.isOnCooldown(golpePoderoso.id)).toBe(true);
+    expect(combat.getSkillCooldown(golpePoderoso.id)).toBe(golpePoderoso.cooldown);
+  });
+
+  it("bloqueia o uso enquanto em cooldown", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    combat.useSkill(golpePoderoso);
+    expect(() => combat.useSkill(golpePoderoso)).toThrow();
+  });
+
+  it("reduz o cooldown a cada rodada e libera ao zerar", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    combat.useSkill(golpePoderoso); // cooldown = 3
+    for (let i = 0; i < golpePoderoso.cooldown; i++) {
+      combat.endTurn(); // enemy
+      combat.endTurn(); // player (+1 rodada => tick)
+    }
+    expect(combat.isOnCooldown(golpePoderoso.id)).toBe(false);
+    expect(() => combat.useSkill(golpePoderoso)).not.toThrow();
+  });
+
+  it("consome mana e lança erro quando insuficiente", () => {
+    // Disparo Preciso: manaCost 10.
+    const disparoPreciso = new ArcherClass().getStartingSkills()[0];
+    const combat = new CombatEngine(makePlayer({ mana: 5, maxMana: 50 }), makeEnemy());
+    combat.start();
+    expect(() => combat.useSkill(disparoPreciso)).toThrow();
+  });
+
+  it("desconta a mana gasta do jogador", () => {
+    const disparoPreciso = new ArcherClass().getStartingSkills()[0];
+    const combat = new CombatEngine(makePlayer({ mana: 50, maxMana: 50 }), makeEnemy());
+    combat.start();
+    const outcome = combat.useSkill(disparoPreciso);
+    expect(outcome.manaSpent).toBe(disparoPreciso.manaCost);
+    expect(combat.getPlayer().mana).toBe(50 - disparoPreciso.manaCost);
   });
 });
