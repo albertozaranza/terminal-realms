@@ -1,0 +1,42 @@
+import type { TranslationCatalog } from "../i18n";
+
+/** Catálogo de traduções em português (Brasil). Idioma padrão. */
+export const ptBR: TranslationCatalog = {
+  "app.title": "Terminal Realms",
+  "common.greeting": "Olá, {name}!",
+  "error.common.minGreaterThanMax": "min ({min}) não pode ser maior que max ({max}).",
+  "error.common.negativeAmount": "A quantidade não pode ser negativa ({amount}).",
+  "error.i18n.unsupportedLanguage": 'Idioma não suportado "{language}".',
+  "error.random.invalidProbability":
+    "A probabilidade deve estar entre 0 e 1 (recebido {probability}).",
+  "error.random.emptyArray": "O array não pode estar vazio.",
+  "error.random.emptyEntries": "A lista de entradas não pode estar vazia.",
+  "error.random.negativeWeight": "Peso negativo não é permitido ({weight}).",
+  "error.random.nonPositiveWeightSum": "A soma dos pesos deve ser maior que zero.",
+  "error.dice.invalidSides": "Número de lados inválido ({sides}).",
+  "error.dice.invalidCount": "Quantidade de dados inválida ({count}).",
+  "error.dice.invalidNotation":
+    'Notação de dado inválida ("{notation}"). Use o formato NdM ou NdM+K.',
+  "error.character.emptyName": "O nome do personagem não pode ser vazio.",
+  "error.experience.invalidLevel": "Nível inválido ({level}).",
+  "error.experience.negativeXp": "A quantidade de XP não pode ser negativa ({amount}).",
+  "error.engine.alreadyStarted": "A engine já foi iniciada.",
+  "error.engine.notRunning": "Não é possível trocar de fase com a engine parada.",
+  "error.combat.alreadyStarted": "O combate já foi iniciado.",
+  "error.combat.notStarted": "O combate não foi iniciado.",
+  "error.combat.alreadyEnded": "O combate já foi encerrado.",
+  "error.combat.stillOngoing": "O combate ainda está em andamento.",
+  "error.combat.skillOnCooldown": 'A habilidade "{name}" está em cooldown.',
+  "error.combat.notEnoughMana": 'Mana insuficiente para "{name}".',
+  "error.world.noEnemies": 'A região "{region}" não possui inimigos.',
+  "error.inventory.itemNotFound": 'Item "{itemId}" não está no inventário.',
+  "error.inventory.notEnoughGold": "Ouro insuficiente (tem {have}, precisa {need}).",
+  "error.loot.emptyTable": "A tabela de loot está vazia.",
+  "error.loot.negativeCount": "count não pode ser negativo ({count}).",
+  "error.region.notInOrder": 'Região "{regionId}" não está na ordem de progressão.',
+  "error.save.corruptedJson": "Save corrompido (JSON inválido).",
+  "error.save.invalidStructure": "Estrutura de save inválida.",
+  "error.save.notFound": 'Nenhum save encontrado em "{path}".',
+  "error.ansi.noBossArt": 'Não há arte para o chefe "{bossId}".',
+  "error.ansi.noClassArt": 'Não há arte para a classe "{classId}".',
+};

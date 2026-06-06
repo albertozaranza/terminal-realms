@@ -1,3 +1,4 @@
+import { t } from "../utils";
 import type { GameState } from "./GameState";
 
 /**
@@ -32,7 +33,7 @@ export class GameEngine {
   /** Inicia a engine no menu principal. */
   start(): void {
     if (this.running) {
-      throw new Error("GameEngine: a engine já foi iniciada.");
+      throw new Error(t("error.engine.alreadyStarted"));
     }
     this.running = true;
     this.phase = "menu";
@@ -46,7 +47,7 @@ export class GameEngine {
   /** Transiciona para uma nova fase do jogo. */
   transitionTo(phase: GamePhase): void {
     if (!this.running) {
-      throw new Error("GameEngine: não é possível trocar de fase com a engine parada.");
+      throw new Error(t("error.engine.notRunning"));
     }
     this.phase = phase;
   }

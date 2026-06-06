@@ -1,3 +1,5 @@
+import { t } from "../../utils";
+
 /** Arte ASCII de cada classe jogável, indexada pelo classId. */
 const CLASS_ART: Readonly<Record<string, string>> = {
   warrior: ["   /\\   ", "  |==|  ", "  |  |  ", "  |  |  ", " Guerreiro"].join("\n"),
@@ -9,7 +11,7 @@ const CLASS_ART: Readonly<Record<string, string>> = {
 export function renderClassArt(classId: string): string {
   const art = CLASS_ART[classId];
   if (!art) {
-    throw new Error(`renderClassArt: não há arte para a classe "${classId}".`);
+    throw new Error(t("error.ansi.noClassArt", { classId }));
   }
   return art;
 }

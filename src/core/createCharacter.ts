@@ -1,4 +1,5 @@
 import type { CharacterClass, Player } from "../types";
+import { t } from "../utils";
 
 /** Dados necessários para criar um personagem. */
 export interface CreateCharacterInput {
@@ -15,7 +16,7 @@ export interface CreateCharacterInput {
 export function createCharacter({ name, characterClass }: CreateCharacterInput): Player {
   const trimmedName = name.trim();
   if (trimmedName.length === 0) {
-    throw new Error("createCharacter: o nome do personagem não pode ser vazio.");
+    throw new Error(t("error.character.emptyName"));
   }
 
   const stats = characterClass.getStartingStats();

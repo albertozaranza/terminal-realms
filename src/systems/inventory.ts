@@ -1,4 +1,5 @@
 import type { Inventory, Item } from "../types";
+import { t } from "../utils";
 
 /**
  * Sistema de inventário — funções puras que retornam um novo Inventory
@@ -14,7 +15,7 @@ export function addItem(inventory: Inventory, item: Item): Inventory {
 export function removeItem(inventory: Inventory, itemId: string): Inventory {
   const index = inventory.items.findIndex((item) => item.id === itemId);
   if (index === -1) {
-    throw new Error(`removeItem: item "${itemId}" não está no inventário.`);
+    throw new Error(t("error.inventory.itemNotFound", { itemId }));
   }
   const items = inventory.items.filter((_, i) => i !== index);
   return { ...inventory, items };
@@ -33,7 +34,7 @@ export function countItem(inventory: Inventory, itemId: string): number {
 /** Adiciona ouro ao inventário. */
 export function addGold(inventory: Inventory, amount: number): Inventory {
   if (amount < 0) {
-    throw new Error(`addGold: quantidade não pode ser negativa (${amount}).`);
+    throw new Error(t("error.common.negativeAmount", { amount }));
   }
   return { ...inventory, gold: inventory.gold + amount };
 }
@@ -41,10 +42,10 @@ export function addGold(inventory: Inventory, amount: number): Inventory {
 /** Remove ouro do inventário. Lança erro se for insuficiente. */
 export function removeGold(inventory: Inventory, amount: number): Inventory {
   if (amount < 0) {
-    throw new Error(`removeGold: quantidade não pode ser negativa (${amount}).`);
+    throw new Error(t("error.common.negativeAmount", { amount }));
   }
   if (amount > inventory.gold) {
-    throw new Error(`removeGold: ouro insuficiente (tem ${inventory.gold}, precisa ${amount}).`);
+    throw new Error(t("error.inventory.notEnoughGold", { have: inventory.gold, need: amount }));
   }
   return { ...inventory, gold: inventory.gold - amount };
 }

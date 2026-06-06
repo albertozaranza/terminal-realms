@@ -1,4 +1,5 @@
 import type { Enemy, Player, Skill, SkillResult } from "../types";
+import { t } from "../utils";
 import { computeDamage, getPlayerAttack } from "./damage";
 
 /** Situação atual do combate. */
@@ -54,7 +55,7 @@ export class CombatEngine {
   /** Inicia o combate e avalia o estado inicial. */
   start(): void {
     if (this.started) {
-      throw new Error("CombatEngine: o combate já foi iniciado.");
+      throw new Error(t("error.combat.alreadyStarted"));
     }
     this.started = true;
     this.currentTurn = "player";
@@ -112,10 +113,10 @@ export class CombatEngine {
   useSkill(skill: Skill): SkillUseOutcome {
     this.ensureActable();
     if (this.isOnCooldown(skill.id)) {
-      throw new Error(`CombatEngine: a habilidade "${skill.name}" está em cooldown.`);
+      throw new Error(t("error.combat.skillOnCooldown", { name: skill.name }));
     }
     if (this.player.mana < skill.manaCost) {
-      throw new Error(`CombatEngine: mana insuficiente para "${skill.name}".`);
+      throw new Error(t("error.combat.notEnoughMana", { name: skill.name }));
     }
 
     this.player.mana -= skill.manaCost;
@@ -150,10 +151,10 @@ export class CombatEngine {
   /** Garante que uma ação pode ser executada. */
   protected ensureActable(): void {
     if (!this.started) {
-      throw new Error("CombatEngine: o combate não foi iniciado.");
+      throw new Error(t("error.combat.notStarted"));
     }
     if (this.isOver()) {
-      throw new Error("CombatEngine: o combate já foi encerrado.");
+      throw new Error(t("error.combat.alreadyEnded"));
     }
   }
 
@@ -190,7 +191,7 @@ export class CombatEngine {
    */
   getResult(): CombatResult {
     if (!this.isOver()) {
-      throw new Error("CombatEngine: o combate ainda está em andamento.");
+      throw new Error(t("error.combat.stillOngoing"));
     }
     if (this.status === "victory") {
       return { status: "victory", experienceReward: this.enemy.experienceReward };

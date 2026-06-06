@@ -1,5 +1,5 @@
 import type { Region } from "../types";
-import { chance, pick, type Rng } from "../utils";
+import { chance, pick, type Rng, t } from "../utils";
 
 /** Encontro com um inimigo comum da região. */
 export interface EnemyEncounter {
@@ -47,7 +47,7 @@ export class WorldEngine {
   /** Avança um passo na região e retorna o encontro gerado. */
   advance(rng?: Rng): Encounter {
     if (this.region.enemyPool.length === 0) {
-      throw new Error(`WorldEngine: a região "${this.region.id}" não possui inimigos.`);
+      throw new Error(t("error.world.noEnemies", { region: this.region.id }));
     }
     this.steps += 1;
 

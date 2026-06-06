@@ -5,7 +5,11 @@
  * as camadas, inclusive nos lançamentos de erro. O idioma atual é um
  * estado de módulo; mensagens são resolvidas em tempo de chamada, então
  * trocar o idioma afeta toda saída subsequente (incluindo erros).
+ *
+ * Os catálogos de cada idioma ficam em arquivos isolados em ./locales.
  */
+import { en } from "./locales/en";
+import { ptBR } from "./locales/ptBR";
 
 /** Idiomas suportados. */
 export type Language = "pt-BR" | "en";
@@ -19,17 +23,12 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = ["pt-BR", "en"];
 /** Parâmetros de interpolação de uma mensagem. */
 export type TranslationParams = Record<string, string | number>;
 
-type Catalog = Record<string, string>;
+/** Catálogo de traduções: chave -> texto. */
+export type TranslationCatalog = Record<string, string>;
 
-const catalogs: Record<Language, Catalog> = {
-  "pt-BR": {
-    "app.title": "Terminal Realms",
-    "common.greeting": "Olá, {name}!",
-  },
-  en: {
-    "app.title": "Terminal Realms",
-    "common.greeting": "Hello, {name}!",
-  },
+const catalogs: Record<Language, TranslationCatalog> = {
+  "pt-BR": ptBR,
+  en,
 };
 
 let currentLanguage: Language = DEFAULT_LANGUAGE;
@@ -42,13 +41,13 @@ export function getLanguage(): Language {
 /** Define o idioma atual. */
 export function setLanguage(language: Language): void {
   if (!SUPPORTED_LANGUAGES.includes(language)) {
-    throw new Error(`setLanguage: unsupported language "${language}".`);
+    throw new Error(t("error.i18n.unsupportedLanguage", { language }));
   }
   currentLanguage = language;
 }
 
 /** Mescla entradas de tradução em um idioma (usado por módulos de locale). */
-export function registerTranslations(language: Language, entries: Catalog): void {
+export function registerTranslations(language: Language, entries: TranslationCatalog): void {
   Object.assign(catalogs[language], entries);
 }
 

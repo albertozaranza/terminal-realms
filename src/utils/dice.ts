@@ -1,12 +1,13 @@
 /**
  * Rolagem de dados no estilo D&D.
  */
+import { t } from "./i18n";
 import { type Rng, randomInt } from "./random";
 
 /** Rola um único dado de `sides` lados (1..sides). */
 export function rollDie(sides: number, rng?: Rng): number {
   if (!Number.isInteger(sides) || sides < 1) {
-    throw new Error(`rollDie: número de lados inválido (${sides}).`);
+    throw new Error(t("error.dice.invalidSides", { sides }));
   }
   return randomInt(1, sides, rng);
 }
@@ -14,7 +15,7 @@ export function rollDie(sides: number, rng?: Rng): number {
 /** Rola `count` dados de `sides` lados e retorna a soma. */
 export function rollDice(count: number, sides: number, rng?: Rng): number {
   if (!Number.isInteger(count) || count < 1) {
-    throw new Error(`rollDice: quantidade de dados inválida (${count}).`);
+    throw new Error(t("error.dice.invalidCount", { count }));
   }
   let total = 0;
   for (let i = 0; i < count; i++) {
@@ -31,7 +32,7 @@ const NOTATION = /^(\d+)d(\d+)([+-]\d+)?$/i;
 export function roll(notation: string, rng?: Rng): number {
   const match = NOTATION.exec(notation.trim());
   if (!match) {
-    throw new Error(`roll: notação de dado inválida ("${notation}"). Use o formato NdM ou NdM+K.`);
+    throw new Error(t("error.dice.invalidNotation", { notation }));
   }
   const count = Number(match[1]);
   const sides = Number(match[2]);

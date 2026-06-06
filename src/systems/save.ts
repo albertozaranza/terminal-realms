@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import { type GameState, SAVE_FILE } from "../core";
+import { t } from "../utils";
 
 /**
  * Abstração de armazenamento do save. Permite injetar um storage em
@@ -75,10 +76,10 @@ export function deserializeGameState(json: string): GameState {
   try {
     parsed = JSON.parse(json);
   } catch {
-    throw new Error("deserializeGameState: save corrompido (JSON inválido).");
+    throw new Error(t("error.save.corruptedJson"));
   }
   if (!isGameState(parsed)) {
-    throw new Error("deserializeGameState: estrutura de save inválida.");
+    throw new Error(t("error.save.invalidStructure"));
   }
   return parsed;
 }
@@ -88,7 +89,7 @@ export async function loadGame(options: SaveOptions = {}): Promise<GameState> {
   const storage = options.storage ?? fileStorage;
   const path = options.path ?? SAVE_FILE;
   if (!(await storage.exists(path))) {
-    throw new Error(`loadGame: nenhum save encontrado em "${path}".`);
+    throw new Error(t("error.save.notFound", { path }));
   }
   return deserializeGameState(await storage.read(path));
 }

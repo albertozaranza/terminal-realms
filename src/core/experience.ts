@@ -1,4 +1,5 @@
 import type { Player } from "../types";
+import { t } from "../utils";
 import { MAX_LEVEL } from "./config";
 
 /** Base e expoente da curva de XP (exponencial leve). */
@@ -21,7 +22,7 @@ export const LEVEL_UP_GAINS = {
  */
 export function xpToNextLevel(level: number): number {
   if (!Number.isInteger(level) || level < 1) {
-    throw new Error(`xpToNextLevel: nível inválido (${level}).`);
+    throw new Error(t("error.experience.invalidLevel", { level }));
   }
   if (level >= MAX_LEVEL) {
     return Number.POSITIVE_INFINITY;
@@ -43,7 +44,7 @@ export interface ExperienceResult {
  */
 export function grantExperience(player: Player, amount: number): ExperienceResult {
   if (amount < 0) {
-    throw new Error(`grantExperience: a quantidade de XP não pode ser negativa (${amount}).`);
+    throw new Error(t("error.experience.negativeXp", { amount }));
   }
 
   const updated: Player = { ...player, experience: player.experience + amount };

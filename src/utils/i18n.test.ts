@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_LANGUAGE, getLanguage, setLanguage, t } from "./i18n";
+import { randomInt } from "./random";
 
 afterEach(() => {
   setLanguage(DEFAULT_LANGUAGE);
@@ -33,5 +34,11 @@ describe("i18n", () => {
   it("throws on unsupported language", () => {
     // @ts-expect-error idioma inválido proposital
     expect(() => setLanguage("fr")).toThrow();
+  });
+
+  it("error messages follow the current language", () => {
+    expect(() => randomInt(5, 1)).toThrow(/não pode ser maior/);
+    setLanguage("en");
+    expect(() => randomInt(5, 1)).toThrow(/cannot be greater/);
   });
 });

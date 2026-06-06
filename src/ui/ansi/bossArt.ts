@@ -1,3 +1,5 @@
+import { t } from "../../utils";
+
 /** Arte ASCII de cada chefe, indexada pelo id do chefe. */
 const BOSS_ART: Readonly<Record<string, string>> = {
   goblin_king: [
@@ -14,7 +16,7 @@ const BOSS_ART: Readonly<Record<string, string>> = {
 export function renderBossArt(bossId: string): string {
   const art = BOSS_ART[bossId];
   if (!art) {
-    throw new Error(`renderBossArt: não há arte para o chefe "${bossId}".`);
+    throw new Error(t("error.ansi.noBossArt", { bossId }));
   }
   return art;
 }

@@ -1,11 +1,12 @@
 /**
  * Utilitários matemáticos puros.
  */
+import { t } from "./i18n";
 
 /** Restringe um valor ao intervalo [min, max]. */
 export function clamp(value: number, min: number, max: number): number {
   if (min > max) {
-    throw new Error(`clamp: min (${min}) não pode ser maior que max (${max}).`);
+    throw new Error(t("error.common.minGreaterThanMax", { min, max }));
   }
   return Math.min(Math.max(value, min), max);
 }

@@ -1,4 +1,5 @@
 import type { Player, Region } from "../types";
+import { t } from "../utils";
 
 /**
  * Sistema de progressão entre regiões.
@@ -16,7 +17,7 @@ export function canEnterRegion(player: Player, region: Region): boolean {
 export function getNextRegionId(order: readonly string[], currentId: string): string | undefined {
   const index = order.indexOf(currentId);
   if (index === -1) {
-    throw new Error(`getNextRegionId: região "${currentId}" não está na ordem de progressão.`);
+    throw new Error(t("error.region.notInOrder", { regionId: currentId }));
   }
   return order[index + 1];
 }
