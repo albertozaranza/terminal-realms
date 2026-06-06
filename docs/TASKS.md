@@ -23,7 +23,7 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 | 7 — Interface | T026–T028 | ✅ Concluída |
 | 8 — Persistência | T029–T030 | ✅ Concluída |
 | 9 — MVP Release | T031–T033 | ✅ Concluída |
-| 10 — Internacionalização (i18n) | T034–T038 | ⏳ A fazer |
+| 10 — Internacionalização (i18n) | T034–T038 | ✅ Concluída |
 | 11 — Refinamentos Técnicos | T039–T042 | 🗄️ Backlog |
 | 12 — Roadmap Futuro | T043–T049 | 🗄️ Backlog |
 
@@ -561,7 +561,7 @@ Gerar versão estável.
 
 ---
 
-# FASE 10 — INTERNACIONALIZAÇÃO (i18n) — ⏳ A FAZER
+# FASE 10 — INTERNACIONALIZAÇÃO (i18n) — ✅ CONCLUÍDA
 
 Objetivo: remover português dos identificadores e permitir o jogo em múltiplos idiomas (pt-BR padrão e en), com erros e exceções seguindo o idioma escolhido.
 
