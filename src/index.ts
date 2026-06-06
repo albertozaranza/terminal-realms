@@ -3,11 +3,13 @@
  *
  * Provê a implementação real de GameIO (inquirer + console + ANSI art)
  * e executa o jogo. Toda a lógica de orquestração vive em game.ts.
+ * Os textos da interface passam pelo i18n (t()).
  */
 import inquirer from "inquirer";
 import { type CombatChoice, type ExploreAction, type GameIO, runGame } from "./game";
 import type { CharacterClass, Skill } from "./types";
 import { renderLogo } from "./ui";
+import { type Language, SUPPORTED_LANGUAGES, t } from "./utils";
 
 const cliIO: GameIO = {
   render: (text) => {
@@ -16,15 +18,18 @@ const cliIO: GameIO = {
 
   mainMenu: async () => {
     console.log(renderLogo());
-    const { action } = await inquirer.prompt<{ action: "new" | "continue" | "exit" }>([
+    const { action } = await inquirer.prompt<{
+      action: "new" | "continue" | "language" | "exit";
+    }>([
       {
         type: "list",
         name: "action",
-        message: "Terminal Realms",
+        message: t("menu.title"),
         choices: [
-          { name: "Novo Jogo", value: "new" },
-          { name: "Continuar", value: "continue" },
-          { name: "Sair", value: "exit" },
+          { name: t("menu.newGame"), value: "new" },
+          { name: t("menu.continue"), value: "continue" },
+          { name: t("menu.language"), value: "language" },
+          { name: t("menu.exit"), value: "exit" },
         ],
       },
     ]);
@@ -33,7 +38,12 @@ const cliIO: GameIO = {
 
   askName: async () => {
     const { name } = await inquirer.prompt<{ name: string }>([
-      { type: "input", name: "name", message: "Nome do personagem:", default: "Herói" },
+      {
+        type: "input",
+        name: "name",
+        message: t("prompt.characterName"),
+        default: t("prompt.defaultName"),
+      },
     ]);
     return name;
   },
@@ -43,11 +53,24 @@ const cliIO: GameIO = {
       {
         type: "list",
         name: "id",
-        message: "Escolha sua classe:",
-        choices: classes.map((c) => ({ name: c.name, value: c.id })),
+        message: t("prompt.chooseClass"),
+        choices: classes.map((c) => ({ name: t(`name.${c.id}`), value: c.id })),
       },
     ]);
     return classes.find((c) => c.id === id) ?? classes[0];
+  },
+
+  chooseLanguage: async (current: Language) => {
+    const { language } = await inquirer.prompt<{ language: Language }>([
+      {
+        type: "list",
+        name: "language",
+        message: t("prompt.chooseLanguage"),
+        default: current,
+        choices: SUPPORTED_LANGUAGES.map((lang) => ({ name: t(`language.${lang}`), value: lang })),
+      },
+    ]);
+    return language;
   },
 
   exploreAction: async () => {
@@ -55,12 +78,12 @@ const cliIO: GameIO = {
       {
         type: "list",
         name: "action",
-        message: "O que deseja fazer?",
+        message: t("prompt.exploreAction"),
         choices: [
-          { name: "Explorar", value: "explore" },
-          { name: "Enfrentar o Rei Goblin", value: "boss" },
-          { name: "Salvar", value: "save" },
-          { name: "Voltar ao menu", value: "menu" },
+          { name: t("explore.explore"), value: "explore" },
+          { name: t("explore.boss", { boss: t("name.goblin_king") }), value: "boss" },
+          { name: t("explore.save"), value: "save" },
+          { name: t("explore.menu"), value: "menu" },
         ],
       },
     ]);
@@ -72,11 +95,11 @@ const cliIO: GameIO = {
       {
         type: "list",
         name: "action",
-        message: "Sua ação:",
+        message: t("prompt.combatAction"),
         choices: [
-          { name: "Atacar", value: "attack" },
+          { name: t("combat.attack"), value: "attack" },
           ...skills.map((skill) => ({ name: skill.name, value: `skill:${skill.id}` })),
-          { name: "Fugir", value: "flee" },
+          { name: t("combat.flee"), value: "flee" },
         ],
       },
     ]);

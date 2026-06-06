@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import { type GameState, SAVE_FILE } from "../core";
-import { t } from "../utils";
+import { SUPPORTED_LANGUAGES, setLanguage, t } from "../utils";
 
 /**
  * Abstração de armazenamento do save. Permite injetar um storage em
@@ -91,5 +91,10 @@ export async function loadGame(options: SaveOptions = {}): Promise<GameState> {
   if (!(await storage.exists(path))) {
     throw new Error(t("error.save.notFound", { path }));
   }
-  return deserializeGameState(await storage.read(path));
+  const state = deserializeGameState(await storage.read(path));
+  // Restaura o idioma persistido no save.
+  if (SUPPORTED_LANGUAGES.includes(state.language)) {
+    setLanguage(state.language);
+  }
+  return state;
 }

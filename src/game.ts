@@ -17,7 +17,12 @@ import {
 import { hasSave, loadGame, rollLoot, type SaveOptions, saveGame } from "./systems";
 import type { CharacterClass, Enemy, Item, Skill } from "./types";
 import { renderHUD } from "./ui";
-import { type Rng, randomInt } from "./utils";
+import { getLanguage, type Language, type Rng, randomInt, setLanguage, t } from "./utils";
+
+/** Nome localizado de uma entidade pelo seu id (fallback para o id). */
+function localizedName(id: string): string {
+  return t(`name.${id}`);
+}
 
 /** Ação escolhida no menu de exploração. */
 export type ExploreAction = "explore" | "boss" | "save" | "menu";
@@ -35,9 +40,10 @@ export type CombatOutcome = "victory" | "defeat" | "fled";
  */
 export interface GameIO {
   render(text: string): void | Promise<void>;
-  mainMenu(): Promise<"new" | "continue" | "exit">;
+  mainMenu(): Promise<"new" | "continue" | "language" | "exit">;
   askName(): Promise<string>;
   chooseClass(classes: readonly CharacterClass[]): Promise<CharacterClass>;
+  chooseLanguage(current: Language): Promise<Language>;
   exploreAction(): Promise<ExploreAction>;
   combatAction(skills: readonly Skill[]): Promise<CombatChoice>;
 }
@@ -85,10 +91,13 @@ async function resolveCombat(
   const skills =
     AVAILABLE_CLASSES.find((c) => c.id === state.player.classId)?.getStartingSkills() ?? [];
 
-  await io.render(`Um ${enemy.name} apareceu!`);
+  const enemyName = localizedName(enemy.id);
+  await io.render(t("combat.appeared", { name: enemyName }));
 
   while (!combat.isOver()) {
-    await io.render(`${renderHUD(combat.getPlayer())}\n${enemy.name}: ${combat.getEnemy().hp} HP`);
+    await io.render(
+      `${renderHUD(combat.getPlayer())}\n${t("combat.enemyHp", { name: enemyName, hp: combat.getEnemy().hp })}`,
+    );
     const choice = await io.combatAction(skills);
 
     if (choice === "flee") {
@@ -96,7 +105,7 @@ async function resolveCombat(
     }
     if (choice === "attack") {
       const hit = combat.playerAttack();
-      await io.render(`Você causou ${hit.damage} de dano.`);
+      await io.render(t("combat.playerHit", { damage: hit.damage }));
     } else {
       await io.render(combat.useSkill(choice.skill).result.message);
     }
@@ -106,7 +115,7 @@ async function resolveCombat(
     }
     combat.endTurn();
     const enemyHit = combat.enemyAttack();
-    await io.render(`${enemy.name} causou ${enemyHit.damage} de dano.`);
+    await io.render(t("combat.enemyHit", { name: enemyName, damage: enemyHit.damage }));
     if (combat.isOver()) {
       break;
     }
@@ -121,9 +130,9 @@ async function resolveCombat(
   }
 
   const { state: rewarded, leveledUp } = rewardVictory(synced, enemy, result.experienceReward, rng);
-  await io.render(`Vitória! +${result.experienceReward} XP.`);
+  await io.render(t("combat.victory", { xp: result.experienceReward }));
   if (leveledUp) {
-    await io.render(`Você subiu para o nível ${rewarded.player.level}!`);
+    await io.render(t("combat.levelUp", { level: rewarded.player.level }));
   }
   return { state: rewarded, outcome: "victory" };
 }
@@ -155,19 +164,19 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
     }
     if (action === "save") {
       await saveGame(state, options);
-      await io.render("Jogo salvo.");
+      await io.render(t("game.saved"));
       continue;
     }
     if (action === "boss") {
       const boss = await resolveCombat(io, state, goblinKing, options.rng);
       state = boss.state;
       if (boss.outcome === "victory") {
-        await io.render("Você derrotou o Rei Goblin! Fim da jornada inicial.");
+        await io.render(t("game.bossDefeated", { boss: localizedName(goblinKing.id) }));
         await saveGame(state, options);
         return;
       }
       if (boss.outcome === "defeat") {
-        await io.render("Você foi derrotado...");
+        await io.render(t("game.defeated"));
         return;
       }
       continue;
@@ -189,7 +198,7 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
     const battle = await resolveCombat(io, state, enemy, options.rng);
     state = battle.state;
     if (battle.outcome === "defeat") {
-      await io.render("Você foi derrotado...");
+      await io.render(t("game.defeated"));
       return;
     }
     await saveGame(state, options);
@@ -210,9 +219,14 @@ export async function runGame(io: GameIO, options: RunGameOptions = {}): Promise
       continue;
     }
 
+    if (action === "language") {
+      setLanguage(await io.chooseLanguage(getLanguage()));
+      continue;
+    }
+
     if (action === "continue") {
       if (!(await hasSave(options))) {
-        await io.render("Nenhum save encontrado.");
+        await io.render(t("game.noSave"));
         continue;
       }
       await explore(io, await loadGame(options), options);
@@ -225,5 +239,5 @@ export async function runGame(io: GameIO, options: RunGameOptions = {}): Promise
     await explore(io, createInitialGameState(player, startingFields), options);
   }
 
-  await io.render("Até a próxima aventura!");
+  await io.render(t("game.farewell"));
 }

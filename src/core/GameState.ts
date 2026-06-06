@@ -1,4 +1,5 @@
 import type { Inventory, Player, Quest, Region, Statistics } from "../types";
+import { getLanguage, type Language } from "../utils";
 
 /**
  * Estado global único da aplicação. Toda mudança de estado deve passar
@@ -10,6 +11,8 @@ export interface GameState {
   inventory: Inventory;
   activeQuest?: Quest;
   statistics: Statistics;
+  /** Idioma escolhido pelo jogador (persistido no save). */
+  language: Language;
 }
 
 /** Cria estatísticas zeradas. */
@@ -42,5 +45,6 @@ export function createInitialGameState(player: Player, currentRegion: Region): G
     currentRegion,
     inventory: createInventory(),
     statistics: createStatistics(),
+    language: getLanguage(),
   };
 }
