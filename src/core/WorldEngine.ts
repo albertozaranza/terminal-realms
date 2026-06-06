@@ -1,5 +1,5 @@
 import type { Region } from "../types";
-import { pick, type Rng } from "../utils";
+import { chance, pick, type Rng } from "../utils";
 
 /** Encontro com um inimigo comum da região. */
 export interface EnemyEncounter {
@@ -7,21 +7,41 @@ export interface EnemyEncounter {
   enemyId: string;
 }
 
-/** Resultado de avançar na exploração. Eventos são adicionados em T024. */
-export type Encounter = EnemyEncounter;
+/** Encontro com um evento aleatório (baú, emboscada, mercador, ...). */
+export interface EventEncounter {
+  type: "event";
+  eventId: string;
+}
+
+/** Resultado de avançar na exploração. */
+export type Encounter = EnemyEncounter | EventEncounter;
+
+/** Opções de configuração da exploração. */
+export interface WorldEngineOptions {
+  /** Ids de eventos que podem ocorrer na região. */
+  eventPool?: readonly string[];
+  /** Probabilidade (0 a 1) de um passo ser um evento. */
+  eventChance?: number;
+}
+
+const DEFAULT_EVENT_CHANCE = 0.3;
 
 /**
  * Engine de exploração de uma região.
  *
- * Retorna ids de inimigos (string) em vez de objetos Enemy para não
+ * Retorna ids (string) de inimigos/eventos em vez de objetos para não
  * acoplar a camada core à camada de conteúdo — o chamador resolve o id.
  */
 export class WorldEngine {
   private region: Region;
   private steps = 0;
+  private readonly eventPool: readonly string[];
+  private readonly eventChance: number;
 
-  constructor(region: Region) {
+  constructor(region: Region, options: WorldEngineOptions = {}) {
     this.region = region;
+    this.eventPool = options.eventPool ?? [];
+    this.eventChance = options.eventChance ?? DEFAULT_EVENT_CHANCE;
   }
 
   /** Avança um passo na região e retorna o encontro gerado. */
@@ -30,6 +50,10 @@ export class WorldEngine {
       throw new Error(`WorldEngine: a região "${this.region.id}" não possui inimigos.`);
     }
     this.steps += 1;
+
+    if (this.eventPool.length > 0 && chance(this.eventChance, rng)) {
+      return { type: "event", eventId: pick(this.eventPool, rng) };
+    }
     return { type: "enemy", enemyId: pick(this.region.enemyPool, rng) };
   }
 

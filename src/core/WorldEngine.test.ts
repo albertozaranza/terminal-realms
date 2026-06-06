@@ -27,4 +27,30 @@ describe("WorldEngine", () => {
     const world = new WorldEngine({ ...camposIniciais, enemyPool: [] });
     expect(() => world.advance()).toThrow();
   });
+
+  it("gera um evento aleatório quando configurado", () => {
+    const world = new WorldEngine(camposIniciais, {
+      eventPool: ["chest", "ambush", "merchant"],
+      eventChance: 0.3,
+    });
+    const encounter = world.advance(() => 0); // força evento
+    expect(encounter.type).toBe("event");
+    if (encounter.type === "event") {
+      expect(encounter.eventId).toBe("chest");
+    }
+  });
+
+  it("gera inimigo quando a rolagem não cai em evento", () => {
+    const world = new WorldEngine(camposIniciais, {
+      eventPool: ["chest"],
+      eventChance: 0.3,
+    });
+    const encounter = world.advance(() => 0.99);
+    expect(encounter.type).toBe("enemy");
+  });
+
+  it("nunca gera eventos sem eventPool", () => {
+    const world = new WorldEngine(camposIniciais);
+    expect(world.advance(() => 0).type).toBe("enemy");
+  });
 });
