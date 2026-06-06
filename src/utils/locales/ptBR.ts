@@ -51,6 +51,8 @@ export const ptBR: TranslationCatalog = {
   "prompt.chooseLanguage": "Escolha o idioma:",
   "prompt.exploreAction": "O que deseja fazer?",
   "prompt.combatAction": "Sua ação:",
+  "hud.level": "Nível {level}",
+  "hud.maxXp": "MÁX",
   "explore.explore": "Explorar",
   "explore.boss": "Enfrentar o {boss}",
   "explore.save": "Salvar",

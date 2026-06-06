@@ -47,7 +47,8 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T035 | Identificadores em inglês | renomeados consts/ids/arquivos pt-BR→en; `reiGoblin.ts`→`goblinKing.ts`, `camposIniciais.ts`→`startingFields.ts`; nomes exibidos serão localizados em T037 |
 | T036 | Erros e exceções via i18n | todos os `throw` usam `t()`; catálogos movidos para arquivos isolados em `utils/locales/` (a pedido do usuário); erros seguem o idioma atual |
 | T037 | Seleção de idioma pelo usuário | opção "Idioma" no menu; UI/mensagens via `t()`; `GameState.language` persistido e restaurado no load |
-| T037+ | Localização total de conteúdo | nomes/descrições de classes, inimigos, chefe, itens, skills, regiões e mensagens de skills/eventos agora são chaves i18n resolvidas via `t()` (pt-BR/en). Conteúdo sem texto humano hardcoded. ASCII art (T028) permanece com rótulos embutidos e não é exibida no fluxo atual |
+| T037+ | Localização total de conteúdo | nomes/descrições de classes, inimigos, chefe, itens, skills, regiões e mensagens de skills/eventos agora são chaves i18n resolvidas via `t()` (pt-BR/en); HUD e menu legado também localizados. Conteúdo sem texto humano hardcoded. ASCII art (T028) permanece com rótulos embutidos e não é exibida no fluxo atual |
+| T038 | Padronização e isolamento dos testes | todas as descrições `describe`/`it` em inglês; cada teste movido para `__tests__/` no seu path; imports relativos ajustados |
 
 ---
 

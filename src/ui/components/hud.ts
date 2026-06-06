@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { xpToNextLevel } from "../../core";
 import type { Player } from "../../types";
-import { clamp } from "../../utils";
+import { clamp, t } from "../../utils";
 
 /** Renderiza uma barra de progresso textual, ex.: [████░░░░░░]. */
 export function renderBar(current: number, max: number, width = 20): string {
@@ -18,10 +18,10 @@ export function renderBar(current: number, max: number, width = 20): string {
  */
 export function renderHUD(player: Player): string {
   const xpNeeded = xpToNextLevel(player.level);
-  const xpText = Number.isFinite(xpNeeded) ? `${player.experience}/${xpNeeded}` : "MÁX";
+  const xpText = Number.isFinite(xpNeeded) ? `${player.experience}/${xpNeeded}` : t("hud.maxXp");
 
   return [
-    chalk.bold(`${player.name}  Nível ${player.level}`),
+    chalk.bold(`${player.name}  ${t("hud.level", { level: player.level })}`),
     `HP   ${chalk.red(renderBar(player.hp, player.maxHp))} ${player.hp}/${player.maxHp}`,
     `Mana ${chalk.blue(renderBar(player.mana, player.maxMana))} ${player.mana}/${player.maxMana}`,
     `XP   ${chalk.yellow(xpText)}`,

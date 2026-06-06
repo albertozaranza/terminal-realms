@@ -630,15 +630,17 @@ Decisões de refinamento:
 
 ---
 
-## T038 - Descrições de Testes em Inglês
+## T038 - Padronização e Isolamento dos Testes
 
 ### Objetivos
 
 - Traduzir as descrições (`describe`/`it`) dos testes para inglês
+- Isolar os testes em uma pasta `__tests__/` em cada caminho
 
 ### Critérios de Aceite
 
 - Todas as descrições de teste em inglês
+- Cada teste vive em `__tests__/` no seu respectivo path
 - Testes continuam passando
 
 ---

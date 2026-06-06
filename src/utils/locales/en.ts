@@ -50,6 +50,8 @@ export const en: TranslationCatalog = {
   "prompt.chooseLanguage": "Choose the language:",
   "prompt.exploreAction": "What do you want to do?",
   "prompt.combatAction": "Your action:",
+  "hud.level": "Level {level}",
+  "hud.maxXp": "MAX",
   "explore.explore": "Explore",
   "explore.boss": "Fight the {boss}",
   "explore.save": "Save",

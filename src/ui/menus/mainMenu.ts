@@ -1,19 +1,20 @@
 import inquirer from "inquirer";
+import { t } from "../../utils";
 
 /** Ações disponíveis no menu principal. */
 export type MainMenuAction = "new" | "continue" | "exit";
 
-/** Opção exibida no menu principal. */
+/** Opção exibida no menu principal. O `name` é uma chave i18n. */
 export interface MainMenuChoice {
   name: string;
   value: MainMenuAction;
 }
 
-/** Opções do menu principal. */
+/** Opções do menu principal (nomes são chaves i18n resolvidas via t()). */
 export const MAIN_MENU_CHOICES: readonly MainMenuChoice[] = [
-  { name: "Novo Jogo", value: "new" },
-  { name: "Continuar", value: "continue" },
-  { name: "Sair", value: "exit" },
+  { name: "menu.newGame", value: "new" },
+  { name: "menu.continue", value: "continue" },
+  { name: "menu.exit", value: "exit" },
 ];
 
 /** Função que apresenta as opções e devolve a escolha do jogador. */
@@ -24,8 +25,8 @@ const inquirerPrompter: MainMenuPrompter = async (choices) => {
     {
       type: "list",
       name: "action",
-      message: "Terminal Realms",
-      choices: choices.map((choice) => ({ name: choice.name, value: choice.value })),
+      message: t("menu.title"),
+      choices: choices.map((choice) => ({ name: t(choice.name), value: choice.value })),
     },
   ]);
   return action;
