@@ -10,7 +10,28 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 
 ---
 
-# FASE 1 — FOUNDATION
+# Status do Projeto
+
+| Fase | Escopo | Status |
+| ---- | ------ | ------ |
+| 1 — Foundation | T001–T005 | ✅ Concluída |
+| 2 — Core Game | T006–T010 | ✅ Concluída |
+| 3 — Combate | T011–T015 | ✅ Concluída |
+| 4 — Conteúdo Inicial | T016–T018 | ✅ Concluída |
+| 5 — Loot e Equipamentos | T019–T022 | ✅ Concluída |
+| 6 — Exploração | T023–T025 | ✅ Concluída |
+| 7 — Interface | T026–T028 | ✅ Concluída |
+| 8 — Persistência | T029–T030 | ✅ Concluída |
+| 9 — MVP Release | T031–T033 | ✅ Concluída |
+| 10 — Internacionalização (i18n) | T034–T038 | ⏳ A fazer |
+| 11 — Refinamentos Técnicos | T039–T042 | 🗄️ Backlog |
+| 12 — Roadmap Futuro | T043–T049 | 🗄️ Backlog |
+
+O histórico detalhado de conclusão e as decisões técnicas ficam em [PROGRESS.md](PROGRESS.md).
+
+---
+
+# FASE 1 — FOUNDATION — ✅ CONCLUÍDA
 
 Objetivo: criar a base técnica do projeto.
 
@@ -113,7 +134,7 @@ Criar:
 
 ---
 
-# FASE 2 — CORE GAME
+# FASE 2 — CORE GAME — ✅ CONCLUÍDA
 
 Objetivo: criar a engine principal.
 
@@ -189,7 +210,7 @@ Implementar:
 
 ---
 
-# FASE 3 — COMBATE
+# FASE 3 — COMBATE — ✅ CONCLUÍDA
 
 Objetivo: combate completo e jogável.
 
@@ -258,7 +279,7 @@ Implementar encerramento de combate.
 
 ---
 
-# FASE 4 — CONTEÚDO INICIAL
+# FASE 4 — CONTEÚDO INICIAL — ✅ CONCLUÍDA
 
 Objetivo: fornecer conteúdo suficiente para jogar.
 
@@ -309,7 +330,7 @@ Rei Goblin
 
 ---
 
-# FASE 5 — LOOT E EQUIPAMENTOS
+# FASE 5 — LOOT E EQUIPAMENTOS — ✅ CONCLUÍDA
 
 Objetivo: progressão baseada em itens.
 
@@ -363,7 +384,7 @@ Implementar drop aleatório.
 
 ---
 
-# FASE 6 — EXPLORAÇÃO
+# FASE 6 — EXPLORAÇÃO — ✅ CONCLUÍDA
 
 Objetivo: criar o loop principal.
 
@@ -409,7 +430,7 @@ Implementar troca de regiões.
 
 ---
 
-# FASE 7 — INTERFACE
+# FASE 7 — INTERFACE — ✅ CONCLUÍDA
 
 Objetivo: tornar o jogo agradável.
 
@@ -464,7 +485,7 @@ Criar arte para:
 
 ---
 
-# FASE 8 — PERSISTÊNCIA
+# FASE 8 — PERSISTÊNCIA — ✅ CONCLUÍDA
 
 Objetivo: salvar progresso.
 
@@ -494,7 +515,7 @@ Carregar jogo.
 
 ---
 
-# FASE 9 — MVP RELEASE
+# FASE 9 — MVP RELEASE — ✅ CONCLUÍDA
 
 Objetivo: versão jogável.
 
@@ -540,37 +561,157 @@ Gerar versão estável.
 
 ---
 
-# FASE 10 — ROADMAP FUTURO
+# FASE 10 — INTERNACIONALIZAÇÃO (i18n) — ⏳ A FAZER
+
+Objetivo: remover português dos identificadores e permitir o jogo em múltiplos idiomas (pt-BR padrão e en), com erros e exceções seguindo o idioma escolhido.
+
+Decisões de refinamento:
+
+- O motor de i18n vive em `utils/` (camada base, sem dependências) para ser acessível por todas as camadas, inclusive nos lançamentos de erro.
+- Idiomas suportados no MVP: `pt-BR` (padrão) e `en`.
+- IDs de conteúdo e identificadores de código em inglês; nomes exibidos vêm do catálogo de traduções.
+
+---
+
+## T034 - Sistema de i18n (Translation)
+
+### Objetivos
+
+- Criar utilitário de i18n com catálogos `pt-BR` e `en`
+- `t(key, params)` com interpolação de parâmetros
+- `getLanguage` / `setLanguage` com idioma padrão
+
+### Critérios de Aceite
+
+- `t()` retorna a string do idioma atual, com fallback para `pt-BR` e para a própria chave
+- Idioma alternável programaticamente
+
+---
+
+## T035 - Identificadores em Inglês
+
+### Objetivos
+
+- Renomear variáveis, funções, constantes e nomes de arquivo de pt-BR para inglês
+- Renomear IDs de conteúdo (strings) para inglês
+
+### Critérios de Aceite
+
+- Nenhum identificador ou arquivo em pt-BR no código de `src/`
+- Build e testes passam
+
+---
+
+## T036 - Erros e Exceções via i18n
+
+### Objetivos
+
+- Mover as mensagens de erro para o catálogo i18n (`pt-BR` e `en`)
+- Lançar erros usando `t()`
+
+### Critérios de Aceite
+
+- As mensagens de erro seguem o idioma atual
+
+---
+
+## T037 - Seleção de Idioma pelo Usuário
+
+### Objetivos
+
+- Permitir trocar o idioma pela UI (menu)
+- UI e mensagens (incluindo erros) seguem o idioma escolhido
+- Persistir o idioma no save
+
+### Critérios de Aceite
+
+- Trocar o idioma altera a UI e o idioma de erros/exceções
+- O idioma escolhido é restaurado ao carregar o save
+
+---
+
+## T038 - Descrições de Testes em Inglês
+
+### Objetivos
+
+- Traduzir as descrições (`describe`/`it`) dos testes para inglês
+
+### Critérios de Aceite
+
+- Todas as descrições de teste em inglês
+- Testes continuam passando
+
+---
+
+# FASE 11 — REFINAMENTOS TÉCNICOS — 🗄️ BACKLOG (não implementar agora)
+
+Pontos levantados durante o MVP. Não implementar nesta etapa.
+
+---
+
+## T039
+
+Efeito numérico das habilidades em combate.
+
+Hoje `Skill.execute()` retorna efeito neutro. Aplicar dano/cura reais exige enriquecer o contrato `Skill`/combate (mudança arquitetural a propor antes).
+
+---
+
+## T040
+
+Unificar `Player.inventory` e `GameState.inventory`.
+
+Remover a redundância prevista no ARCHITECTURE, definindo um inventário canônico.
+
+---
+
+## T041
+
+Alinhar o roster da Região 1 ao CONTENT_BIBLE.
+
+Hoje os Campos Iniciais usam Goblin/Lobo/Esqueleto/Orc; o CONTENT_BIBLE define Rato Gigante, Goblin, Lobo e Bandido.
+
+---
+
+## T042
+
+Revisar os escopos de commit do commitlint.
+
+Decidir se o escopo deve aceitar apenas `T###` ou continuar permitindo escopos de infra (`tooling`, `docs`, etc.).
+
+---
+
+# FASE 12 — ROADMAP FUTURO — 🗄️ BACKLOG
 
 Não implementar nesta etapa.
 
 ---
 
-## T034
+## T043
 
 Crafting
 
 ---
 
-## T035
+## T044
 
 Missões secundárias
 
 ---
 
-## T036
+## T045
 
 Mercadores avançados
 
 ---
 
-## T037
+## T046
 
 Sistema de reputação
 
 ---
 
-## T038
+## T047
 
 Novas regiões
 
@@ -581,13 +722,13 @@ Novas regiões
 
 ---
 
-## T039
+## T048
 
 Novos chefes
 
 ---
 
-## T040
+## T049
 
 Modo Hardcore
 
@@ -606,3 +747,17 @@ Toda implementação deve seguir esses documentos.
 Nunca alterar a arquitetura para resolver uma tarefa específica.
 
 Se uma tarefa exigir mudança arquitetural, a mudança deve ser proposta antes da implementação.
+
+---
+
+# Definition of Done (ao fechar uma task)
+
+Toda task só é considerada concluída após, na ordem:
+
+1. Implementação seguindo CLAUDE.md / ARCHITECTURE.md / GDD.md / CONTENT_BIBLE.md.
+2. `yarn check` (Biome), `tsc --noEmit`, `yarn test:run` e `yarn build` passando.
+3. **Registrar a conclusão e as decisões tomadas em [PROGRESS.md](PROGRESS.md)** (uma entrada por task).
+4. Atualizar o **Status do Projeto** acima quando uma fase inteira for concluída.
+5. Commit único da task no padrão `tipo(T###): descrição` (validado por commitlint/husky) e push.
+
+Este passo 3 é obrigatório e faz parte do "fechar a task" — nenhuma task é fechada sem entrada correspondente no PROGRESS.md.

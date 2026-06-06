@@ -436,6 +436,7 @@ Ao implementar funcionalidades:
 8. Não remover funcionalidades existentes sem solicitação explícita.
 9. Sempre preferir soluções simples.
 10. Sempre manter o jogo executável.
+11. Ao fechar uma task, registrar a conclusão e as decisões em `docs/PROGRESS.md` (ver _Definition of Done_ em `docs/TASKS.md`). Nenhuma task é concluída sem essa entrada.
 
 ---
 
