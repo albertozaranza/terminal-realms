@@ -59,4 +59,43 @@ describe("CombatEngine", () => {
     combat.start();
     expect(() => combat.start()).toThrow();
   });
+
+  it("ataque do jogador reduz o hp do inimigo", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy({ hp: 25, defense: 0 }));
+    combat.start();
+    const before = combat.getEnemy().hp;
+    const outcome = combat.playerAttack();
+    expect(outcome.damage).toBeGreaterThan(0);
+    expect(combat.getEnemy().hp).toBe(before - outcome.damage);
+    expect(outcome.targetHpRemaining).toBe(combat.getEnemy().hp);
+  });
+
+  it("ataque do inimigo reduz o hp do jogador", () => {
+    const combat = new CombatEngine(makePlayer({ defense: 0 }), makeEnemy({ attack: 10 }));
+    combat.start();
+    const before = combat.getPlayer().hp;
+    const outcome = combat.enemyAttack();
+    expect(outcome.damage).toBe(10);
+    expect(combat.getPlayer().hp).toBe(before - 10);
+  });
+
+  it("não reduz o hp abaixo de zero", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy({ hp: 1, defense: 0 }));
+    combat.start();
+    combat.playerAttack();
+    expect(combat.getEnemy().hp).toBe(0);
+    expect(combat.getStatus()).toBe("victory");
+  });
+
+  it("não permite atacar após o fim do combate", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy({ hp: 1, defense: 0 }));
+    combat.start();
+    combat.playerAttack();
+    expect(() => combat.playerAttack()).toThrow();
+  });
+
+  it("não permite atacar antes de iniciar", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    expect(() => combat.playerAttack()).toThrow();
+  });
 });

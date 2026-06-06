@@ -2,6 +2,7 @@
 export * from "./CombatEngine";
 export * from "./config";
 export * from "./createCharacter";
+export * from "./damage";
 export * from "./experience";
 export * from "./GameEngine";
 export * from "./GameState";

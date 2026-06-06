@@ -1,7 +1,14 @@
 import type { Enemy, Player } from "../types";
+import { computeDamage, getPlayerAttack } from "./damage";
 
 /** Situação atual do combate. */
 export type CombatStatus = "ongoing" | "victory" | "defeat";
+
+/** Resultado de uma ação de ataque. */
+export interface AttackOutcome {
+  damage: number;
+  targetHpRemaining: number;
+}
 
 /**
  * Engine de combate por turnos entre o jogador e um inimigo.
@@ -42,6 +49,34 @@ export class CombatEngine {
     } else {
       this.status = "ongoing";
     }
+  }
+
+  /** Garante que uma ação pode ser executada. */
+  protected ensureActable(): void {
+    if (!this.started) {
+      throw new Error("CombatEngine: o combate não foi iniciado.");
+    }
+    if (this.isOver()) {
+      throw new Error("CombatEngine: o combate já foi encerrado.");
+    }
+  }
+
+  /** Ataque básico do jogador contra o inimigo. */
+  playerAttack(): AttackOutcome {
+    this.ensureActable();
+    const damage = computeDamage(getPlayerAttack(this.player), this.enemy.defense);
+    this.enemy.hp = Math.max(0, this.enemy.hp - damage);
+    this.refreshStatus();
+    return { damage, targetHpRemaining: this.enemy.hp };
+  }
+
+  /** Ataque básico do inimigo contra o jogador. */
+  enemyAttack(): AttackOutcome {
+    this.ensureActable();
+    const damage = computeDamage(this.enemy.attack, this.player.defense);
+    this.player.hp = Math.max(0, this.player.hp - damage);
+    this.refreshStatus();
+    return { damage, targetHpRemaining: this.player.hp };
   }
 
   getStatus(): CombatStatus {
