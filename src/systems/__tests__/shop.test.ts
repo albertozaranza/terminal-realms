@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { Equipment, Inventory, Player, ShopOffer } from "../../types";
 import { addItem } from "../inventory";
-import { buyOffer, canAfford, meetsLevel, SELL_RATE, sellItem, sellPrice } from "../shop";
+import {
+  buyOffer,
+  canAfford,
+  maxAffordable,
+  meetsLevel,
+  SELL_RATE,
+  sellItem,
+  sellPrice,
+} from "../shop";
 
 const armor: Equipment = {
   id: "leather_armor",
@@ -58,6 +66,21 @@ describe("buyOffer", () => {
     const inventory: Inventory = { items: [], gold: 10 };
     expect(() => buyOffer(inventory, player(2), offer)).toThrow();
   });
+
+  it("buys multiple units, debiting the total", () => {
+    const inventory: Inventory = { items: [], gold: 200 };
+    const result = buyOffer(inventory, player(2), offer, 3);
+    expect(result.gold).toBe(50); // 200 - 50*3
+    const slot = result.items.find((entry) => entry.item.id === "leather_armor");
+    // Equipamento não empilha: 3 pilhas individuais.
+    expect(result.items.filter((entry) => entry.item.id === "leather_armor")).toHaveLength(3);
+    expect(slot).toBeDefined();
+  });
+
+  it("maxAffordable reflects the gold and price", () => {
+    expect(maxAffordable({ items: [], gold: 175 }, offer)).toBe(3); // floor(175/50)
+    expect(maxAffordable({ items: [], gold: 40 }, offer)).toBe(0);
+  });
 });
 
 describe("sellItem", () => {
@@ -70,6 +93,22 @@ describe("sellItem", () => {
 
   it("throws when selling a missing item", () => {
     expect(() => sellItem({ items: [], gold: 0 }, "ghost")).toThrow();
+  });
+
+  it("sells multiple units of a stack, crediting the total", () => {
+    const potion = { id: "potion", name: "Potion", description: "", rarity: "common", value: 20 };
+    const inventory: Inventory = { items: [{ item: potion, quantity: 5 }], gold: 0 };
+    const result = sellItem(inventory, "potion", 3);
+    expect(result.items[0].quantity).toBe(2);
+    expect(result.gold).toBe(sellPrice(potion) * 3);
+  });
+
+  it("clamps the sell quantity to what is available", () => {
+    const potion = { id: "potion", name: "Potion", description: "", rarity: "common", value: 20 };
+    const inventory: Inventory = { items: [{ item: potion, quantity: 2 }], gold: 0 };
+    const result = sellItem(inventory, "potion", 99);
+    expect(result.items).toHaveLength(0);
+    expect(result.gold).toBe(sellPrice(potion) * 2);
   });
 });
 

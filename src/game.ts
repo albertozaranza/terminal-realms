@@ -72,8 +72,8 @@ export interface ShopContext {
 
 /** Escolha do jogador na loja. */
 export type ShopChoice =
-  | { type: "buy"; itemId: string }
-  | { type: "sell"; itemId: string }
+  | { type: "buy"; itemId: string; quantity: number }
+  | { type: "sell"; itemId: string; quantity: number }
   | { type: "close" };
 
 /** Contexto da tela de inventário (somente leitura, para a UI desenhar). */
@@ -410,12 +410,18 @@ async function runShop(
         );
         continue;
       }
-      if (current.inventory.gold < offer.price) {
+      // Limita a compra ao que o jogador consegue pagar.
+      const affordable = Math.floor(current.inventory.gold / offer.price);
+      const amount = Math.min(Math.max(1, choice.quantity), affordable);
+      if (amount < 1) {
         await io.render(t("shop.cantAfford", { item: t(offer.item.name) }));
         continue;
       }
-      current = { ...current, inventory: buyOffer(current.inventory, current.player, offer) };
-      await io.render(t("shop.bought", { item: t(offer.item.name) }));
+      current = {
+        ...current,
+        inventory: buyOffer(current.inventory, current.player, offer, amount),
+      };
+      await io.render(t("shop.bought", { quantity: amount, item: t(offer.item.name) }));
       changed = true;
       continue;
     }
@@ -425,9 +431,10 @@ async function runShop(
     if (!slot) {
       continue;
     }
-    const gain = sellPrice(slot.item);
-    current = { ...current, inventory: sellItem(current.inventory, choice.itemId) };
-    await io.render(t("shop.sold", { item: t(slot.item.name), gold: gain }));
+    const amount = Math.min(Math.max(1, choice.quantity), slot.quantity);
+    const gain = sellPrice(slot.item) * amount;
+    current = { ...current, inventory: sellItem(current.inventory, choice.itemId, amount) };
+    await io.render(t("shop.sold", { quantity: amount, item: t(slot.item.name), gold: gain }));
     changed = true;
   }
 

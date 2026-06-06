@@ -51,6 +51,31 @@ async function pressEnter(): Promise<void> {
   await inquirer.prompt([{ type: "input", name: "_", message: t("prompt.continue") }]);
 }
 
+/**
+ * Pergunta uma quantidade (digitada no teclado) entre 1 e `max`. Com `max`
+ * igual a 1 não há o que escolher e retorna 1 direto.
+ */
+async function askQuantity(max: number, defaultValue: number): Promise<number> {
+  if (max <= 1) {
+    return 1;
+  }
+  const { qty } = await inquirer.prompt<{ qty: string }>([
+    {
+      type: "input",
+      name: "qty",
+      message: t("shop.quantityPrompt", { max }),
+      default: String(Math.min(defaultValue, max)),
+      validate: (value: string) => {
+        const parsed = Number(value);
+        return Number.isInteger(parsed) && parsed >= 1 && parsed <= max
+          ? true
+          : t("shop.quantityInvalid", { max });
+      },
+    },
+  ]);
+  return Math.min(max, Math.max(1, Math.floor(Number(qty))));
+}
+
 const cliIO: GameIO = {
   render: (text) => {
     renderer.pushLog(text);
@@ -233,7 +258,11 @@ const cliIO: GameIO = {
         if (choice === "back") {
           continue;
         }
-        return { type: "buy", itemId: choice.slice("buy:".length) };
+        const itemId = choice.slice("buy:".length);
+        const offer = context.offers.find((entry) => entry.item.id === itemId);
+        const affordable = offer ? Math.floor(context.gold / offer.price) : 1;
+        const quantity = await askQuantity(Math.max(1, affordable), 1);
+        return { type: "buy", itemId, quantity };
       }
 
       // Vender.
@@ -259,7 +288,12 @@ const cliIO: GameIO = {
       if (choice === "back") {
         continue;
       }
-      return { type: "sell", itemId: choice.slice("sell:".length) };
+      const itemId = choice.slice("sell:".length);
+      const slot = context.sellable.find((entry) => entry.item.id === itemId);
+      const stack = slot?.quantity ?? 1;
+      // Padrão: vender a pilha inteira (ajustável digitando).
+      const quantity = await askQuantity(stack, stack);
+      return { type: "sell", itemId, quantity };
     }
   },
 
