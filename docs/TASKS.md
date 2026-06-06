@@ -22,13 +22,13 @@ Objetivo: criar a base técnica do projeto.
 
 - Criar projeto Node.js
 - Configurar TypeScript
-- Configurar scripts npm
+- Configurar scripts yarn
 
 ### Critérios de Aceite
 
-- `npm install` funciona
-- `npm run build` funciona
-- `npm start` funciona
+- `yarn install` funciona
+- `yarn build` funciona
+- `yarn start` funciona
 
 ---
 

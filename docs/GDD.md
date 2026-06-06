@@ -472,6 +472,6 @@ O jogo deve ser inspirado em D&D 5e simplificado, possuir as classes Guerreiro, 
 
 Utilize arquitetura modular, tipagem forte, princípios SOLID e separação clara entre engine, conteúdo e interface.
 
-O projeto deve ser totalmente funcional via terminal e pronto para execução através de npm install e npm start.
+O projeto deve ser totalmente funcional via terminal e pronto para execução através de yarn install e yarn start.
 
 Implemente inicialmente um MVP completo e jogável e posteriormente expanda o conteúdo através de arquivos de configuração para permitir a adição de novos monstros, regiões, itens e habilidades sem alterar a engine principal.
