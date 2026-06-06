@@ -29,6 +29,7 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 | 13 — Overhaul de UI (TUI) | T050 | ✅ Concluída |
 | 14 — Economia, Itens e Equipamento | T051–T056 | ✅ Concluída |
 | 15 — Progressão & Diversidade | T057–T059 | 🗄️ Backlog |
+| 16 — Mundo por Descoberta | T060–T072 | 🚧 Em andamento |
 
 O histórico detalhado de conclusão e as decisões técnicas ficam em [PROGRESS.md](PROGRESS.md).
 
@@ -907,7 +908,200 @@ Estoque rotativo da loja por região (depende de mais de uma região).
 
 ## T059
 
-Mapa de regiões no menu principal/exploração.
+Mapa de regiões no menu principal/exploração. **Absorvida pela FASE 16 (T070).**
+
+---
+
+# FASE 16 — MUNDO POR DESCOBERTA — 🚧 EM ANDAMENTO
+
+Objetivo: substituir a exploração linear por um **grafo de locais (POIs)**
+descoberto progressivamente — o "Mapa-Constelação". O jogador viaja
+selecionando locais conhecidos (sem grid/WASD), e visitar locais, conversar
+com NPCs e concluir missões revela novos locais, conhecimento e atalhos.
+Plano completo e decisões em [PLANO_FASE16_MUNDO.md](PLANO_FASE16_MUNDO.md).
+
+Entrega como **fatia vertical na Região 1**. Combate, loot, XP, classes e
+save mantêm as regras — ganham um novo orquestrador de mundo (proposta
+arquitetural aprovada: progressão linear → grafo de locais).
+
+---
+
+## T060 - Tipos do Mundo de Descoberta
+
+### Objetivos
+
+- Criar `Location` (POI: id, nome, ícone, tipo, `coord {col,row}`,
+  `connections[]`, `requirements?`, `content`), `LocationState`,
+  `LocationContent`, `NPC`, `Dialogue`/`DialogueNode`/`DialogueOption`/
+  `DialogueEffect` e `Knowledge`.
+- Estender `Region` (campos opcionais `entryLocationId`, `locations`,
+  `knowledge`) e `Quest` (investigação: `regionId?`, `objectives?`) sem
+  quebrar o conteúdo existente.
+
+### Critérios de Aceite
+
+- Todos os tipos compilam (`tsc`).
+- `Region`/`Quest` permanecem compatíveis com o conteúdo atual (campos novos opcionais).
+
+---
+
+## T061 - GameState + Save/Migração
+
+### Objetivos
+
+- Adicionar ao `GameState`: `currentLocationId?`, `locationStates`
+  (`Record<string, LocationState>`), `knowledge` (`string[]`) e `npcStates`.
+- Migrar saves antigos com defaults seguros (sem quebrar compatibilidade).
+
+### Critérios de Aceite
+
+- Save/load preservam estado de descoberta, conhecimento e local atual.
+- Saves antigos carregam com defaults (sem locais → fog total na entrada).
+
+---
+
+## T062 - systems/discovery.ts (puro)
+
+### Objetivos
+
+- Funções puras: revelar local, marcar concluído, `getReachableDestinations`,
+  checagem de `requirements` (conhecimento/nível/item) e descoberta em cadeia
+  (visitar um local revela seus vizinhos).
+
+### Critérios de Aceite
+
+- Lógica testável sem interface; cobertura dos estados e dos gates.
+
+---
+
+## T063 - systems/journal.ts (puro)
+
+### Objetivos
+
+- `addKnowledge`, `hasKnowledge` e consulta de fatos conhecidos/pendentes por região.
+
+### Critérios de Aceite
+
+- Conhecimento desbloqueia gates (testado sem interface).
+
+---
+
+## T064 - systems/dialogue.ts (puro)
+
+### Objetivos
+
+- Percorrer a árvore de diálogo e aplicar `effects` (revelar local, conceder
+  conhecimento, iniciar missão, abrir loja, iniciar combate), retornando os
+  efeitos para o orquestrador aplicar.
+
+### Critérios de Aceite
+
+- Opções gated por conhecimento; efeitos retornados corretamente (testado).
+
+---
+
+## T065 - core/WorldMapEngine
+
+### Objetivos
+
+- `travelTo(locationId)` resolve o conteúdo do local (combate/npc/evento/
+  loja/boss/lore) e dispara as revelações de descoberta.
+- Refatorar a exploração linear preservando o fallback para regiões sem grafo.
+
+### Critérios de Aceite
+
+- Navegação por grafo funcional; engine desacoplada de I/O e testável.
+
+---
+
+## T066 - Conteúdo: Região 1 como Grafo
+
+### Objetivos
+
+- Definir a Região 1 (Bosque Sombrio) como grafo: Vila Oakheart (entrada),
+  Estrada, Caçador (NPC), Bosque, Ruínas, Cripta (🔒), Necromante (👑),
+  mercador — com NPCs, diálogos, conhecimentos e missão de investigação.
+
+### Critérios de Aceite
+
+- Região jogável fim-a-fim (descoberta → investigação → desbloqueio → chefe).
+- Conteúdo data-driven; nenhuma regra de negócio em `content/`.
+
+---
+
+## T067 - UI: Mapa da Região
+
+### Objetivos
+
+- `mapRender` + `mapScreen`: mapa espacial ASCII com fog, ícones por estado,
+  🔒 com requisito, marcador "você está aqui" e legenda.
+
+### Critérios de Aceite
+
+- Mostra apenas o conhecido; cresce conforme a descoberta. UI sem lógica.
+
+---
+
+## T068 - UI: Diálogo de NPC
+
+### Objetivos
+
+- `dialogueScreen`: fala do NPC + opções numeradas + feedback de revelação.
+
+### Critérios de Aceite
+
+- Conversa navegável; revelações exibidas ao jogador.
+
+---
+
+## T069 - UI: Diário
+
+### Objetivos
+
+- `journalScreen`: conhecimentos da região (☑ conhecidos / ☐ pendentes).
+
+### Critérios de Aceite
+
+- Diário reflete o conhecimento real do jogador.
+
+---
+
+## T070 - UI: Mapa-Múndi de Regiões
+
+### Objetivos
+
+- Mapa de regiões conhecidas (ramificado), absorvendo a T059.
+
+### Critérios de Aceite
+
+- Mostra apenas regiões descobertas.
+
+---
+
+## T071 - Integração no Loop + i18n
+
+### Objetivos
+
+- `game.ts`: menu de exploração vira Mapa / Viajar / Diário / Inventário /
+  Loja / Salvar; fia travel → conteúdo → combate/diálogo/evento/boss.
+- i18n en/ptBR de todos os textos novos.
+
+### Critérios de Aceite
+
+- Jogável fim-a-fim pela nova navegação; erros/UI seguem o idioma.
+
+---
+
+## T072 - Polimento, Balanceamento e Docs
+
+### Objetivos
+
+- Arte ANSI por tipo de local, balanceamento, `yarn check`/`tsc`/`test:run`/
+  `build` verdes; atualizar ARCHITECTURE/GDD/CONTENT_BIBLE/spec.
+
+### Critérios de Aceite
+
+- Sem regressões; documentação alinhada ao novo modelo de mundo.
 
 ---
 
