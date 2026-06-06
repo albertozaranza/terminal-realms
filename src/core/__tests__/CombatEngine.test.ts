@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ArcherClass, WarriorClass } from "../../classes";
+import { ArcherClass, MageClass, WarriorClass } from "../../classes";
 import type { Enemy, Player } from "../../types";
 import { CombatEngine } from "../CombatEngine";
 import { createCharacter } from "../createCharacter";
@@ -180,6 +180,69 @@ describe("CombatEngine — skills and cooldowns", () => {
     const outcome = combat.useSkill(preciseShot);
     expect(outcome.manaSpent).toBe(preciseShot.manaCost);
     expect(combat.getPlayer().mana).toBe(50 - preciseShot.manaCost);
+  });
+});
+
+describe("CombatEngine — skill effects", () => {
+  function makeMage(overrides: Partial<Player> = {}): Player {
+    return { ...createCharacter({ name: "Mage", characterClass: new MageClass() }), ...overrides };
+  }
+
+  it("offensive skills reduce the enemy hp", () => {
+    const fireball = new MageClass().getStartingSkills()[0];
+    const combat = new CombatEngine(makeMage(), makeEnemy({ hp: 100, defense: 0 }));
+    combat.start();
+    const before = combat.getEnemy().hp;
+    const outcome = combat.useSkill(fireball);
+    expect(outcome.result.damage).toBeGreaterThan(0);
+    expect(combat.getEnemy().hp).toBe(before - outcome.result.damage);
+  });
+
+  it("scales offensive skill damage above a basic attack", () => {
+    // Fireball (int * 1.8) deve superar o ataque básico (int) do mago.
+    const fireball = new MageClass().getStartingSkills()[0];
+    const skillCombat = new CombatEngine(makeMage(), makeEnemy({ hp: 100, defense: 0 }));
+    skillCombat.start();
+    const skillDamage = skillCombat.useSkill(fireball).result.damage;
+
+    const attackCombat = new CombatEngine(makeMage(), makeEnemy({ hp: 100, defense: 0 }));
+    attackCombat.start();
+    const basicDamage = attackCombat.playerAttack().damage;
+
+    expect(skillDamage).toBeGreaterThan(basicDamage);
+  });
+
+  it("a defensive skill reduces incoming damage while active", () => {
+    const arcaneShield = new MageClass().getStartingSkills()[2];
+    const combat = new CombatEngine(makeMage({ defense: 10 }), makeEnemy({ attack: 30 }));
+    combat.start();
+
+    const outcome = combat.useSkill(arcaneShield);
+    expect(outcome.result.damage).toBe(0);
+    const buffed = combat.enemyAttack();
+
+    const baseline = new CombatEngine(makeMage({ defense: 10 }), makeEnemy({ attack: 30 }));
+    baseline.start();
+    const unbuffed = baseline.enemyAttack();
+
+    expect(buffed.damage).toBeLessThan(unbuffed.damage);
+  });
+
+  it("the defense buff expires after its duration", () => {
+    const arcaneShield = new MageClass().getStartingSkills()[2]; // 3 rodadas
+    const combat = new CombatEngine(makeMage({ defense: 10 }), makeEnemy({ attack: 30 }));
+    combat.start();
+    combat.useSkill(arcaneShield);
+
+    for (let i = 0; i < 3; i++) {
+      combat.endTurn(); // enemy
+      combat.endTurn(); // player (+1 rodada => tick)
+    }
+
+    const expired = combat.enemyAttack();
+    const baseline = new CombatEngine(makeMage({ defense: 10 }), makeEnemy({ attack: 30 }));
+    baseline.start();
+    expect(expired.damage).toBe(baseline.enemyAttack().damage);
   });
 });
 

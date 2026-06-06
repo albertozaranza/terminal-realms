@@ -1,3 +1,4 @@
+import { computeSkillDamage } from "../core/damage";
 import type { CharacterClass, Skill, Stats } from "../types";
 
 const powerfulStrike: Skill = {
@@ -6,8 +7,8 @@ const powerfulStrike: Skill = {
   description: "desc.powerful_strike",
   manaCost: 0,
   cooldown: 3,
-  execute: () => ({
-    damage: 0,
+  execute: (caster, target) => ({
+    damage: computeSkillDamage(caster.strength, 1.5, target.defense),
     healing: 0,
     message: "skillmsg.powerful_strike",
   }),
@@ -23,6 +24,8 @@ const defensiveStance: Skill = {
     damage: 0,
     healing: 0,
     message: "skillmsg.defensive_stance",
+    defenseBuff: 0.5,
+    defenseBuffTurns: 2,
   }),
 };
 

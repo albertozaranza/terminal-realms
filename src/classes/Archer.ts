@@ -1,3 +1,4 @@
+import { computeSkillDamage } from "../core/damage";
 import type { CharacterClass, Skill, Stats } from "../types";
 
 const preciseShot: Skill = {
@@ -6,8 +7,8 @@ const preciseShot: Skill = {
   description: "desc.precise_shot",
   manaCost: 10,
   cooldown: 4,
-  execute: () => ({
-    damage: 0,
+  execute: (caster, target) => ({
+    damage: computeSkillDamage(caster.dexterity, 2.0, target.defense),
     healing: 0,
     message: "skillmsg.precise_shot",
   }),
@@ -19,8 +20,8 @@ const arrowRain: Skill = {
   description: "desc.arrow_rain",
   manaCost: 15,
   cooldown: 6,
-  execute: () => ({
-    damage: 0,
+  execute: (caster, target) => ({
+    damage: computeSkillDamage(caster.dexterity, 1.5, target.defense),
     healing: 0,
     message: "skillmsg.arrow_rain",
   }),

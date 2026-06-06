@@ -46,6 +46,10 @@ export class CombatEngine {
   private started = false;
   /** Cooldowns restantes (em rodadas) por id de habilidade. */
   private readonly cooldowns = new Map<string, number>();
+  /** Bônus de defesa ativo do jogador (fração da defesa base). */
+  private defenseBuff = 0;
+  /** Rodadas restantes do bônus de defesa. */
+  private defenseBuffTurns = 0;
 
   constructor(player: Player, enemy: Enemy) {
     this.player = { ...player };
@@ -104,6 +108,20 @@ export class CombatEngine {
         this.cooldowns.set(skillId, remaining - 1);
       }
     }
+    if (this.defenseBuffTurns > 0) {
+      this.defenseBuffTurns -= 1;
+      if (this.defenseBuffTurns === 0) {
+        this.defenseBuff = 0;
+      }
+    }
+  }
+
+  /**
+   * Defesa efetiva do jogador, incluindo o bônus temporário concedido
+   * por habilidades defensivas (arredondado para baixo).
+   */
+  protected effectivePlayerDefense(): number {
+    return Math.floor(this.player.defense * (1 + this.defenseBuff));
   }
 
   /**
@@ -127,6 +145,10 @@ export class CombatEngine {
     }
     if (result.healing > 0) {
       this.player.hp = Math.min(this.player.maxHp, this.player.hp + result.healing);
+    }
+    if (result.defenseBuff && result.defenseBuffTurns && result.defenseBuffTurns > 0) {
+      this.defenseBuff = result.defenseBuff;
+      this.defenseBuffTurns = result.defenseBuffTurns;
     }
 
     if (skill.cooldown > 0) {
@@ -170,7 +192,7 @@ export class CombatEngine {
   /** Ataque básico do inimigo contra o jogador. */
   enemyAttack(): AttackOutcome {
     this.ensureActable();
-    const damage = computeDamage(this.enemy.attack, this.player.defense);
+    const damage = computeDamage(this.enemy.attack, this.effectivePlayerDefense());
     this.player.hp = Math.max(0, this.player.hp - damage);
     this.refreshStatus();
     return { damage, targetHpRemaining: this.player.hp };

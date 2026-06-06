@@ -161,7 +161,14 @@ async function resolveCombat(
       const hit = combat.playerAttack();
       await io.render(t("combat.playerHit", { damage: hit.damage }));
     } else {
-      await io.render(t(combat.useSkill(choice.skill).result.message));
+      const { result } = combat.useSkill(choice.skill);
+      await io.render(t(result.message));
+      if (result.damage > 0) {
+        await io.render(t("combat.playerHit", { damage: result.damage }));
+      }
+      if (result.healing > 0) {
+        await io.render(t("combat.heal", { amount: result.healing }));
+      }
     }
 
     if (combat.isOver()) {

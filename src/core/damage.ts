@@ -17,3 +17,12 @@ export function computeDamage(attack: number, defense: number): number {
 export function getPlayerAttack(player: Player): number {
   return Math.max(player.strength, player.dexterity, player.intelligence);
 }
+
+/**
+ * Dano de uma habilidade: escala um atributo do conjurador por um
+ * multiplicador (ex.: 1.5 = 150% do atributo) e aplica a fórmula de dano
+ * padrão contra a defesa do alvo.
+ */
+export function computeSkillDamage(attribute: number, multiplier: number, defense: number): number {
+  return computeDamage(attribute * multiplier, defense);
+}
