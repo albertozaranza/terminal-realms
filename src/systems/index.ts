@@ -4,6 +4,7 @@ export * from "./discovery";
 export * from "./equipment";
 export * from "./inventory";
 export * from "./itemGuards";
+export * from "./journal";
 export * from "./loot";
 export * from "./region";
 export * from "./save";
