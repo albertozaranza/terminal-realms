@@ -50,3 +50,45 @@ export async function hasSave(options: SaveOptions = {}): Promise<boolean> {
   const path = options.path ?? SAVE_FILE;
   return storage.exists(path);
 }
+
+/** Valida que um valor desserializado tem a estrutura de um GameState. */
+function isGameState(value: unknown): value is GameState {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.player === "object" &&
+    candidate.player !== null &&
+    typeof candidate.currentRegion === "object" &&
+    candidate.currentRegion !== null &&
+    typeof candidate.inventory === "object" &&
+    candidate.inventory !== null &&
+    typeof candidate.statistics === "object" &&
+    candidate.statistics !== null
+  );
+}
+
+/** Desserializa um GameState a partir de JSON, validando a estrutura. */
+export function deserializeGameState(json: string): GameState {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error("deserializeGameState: save corrompido (JSON inválido).");
+  }
+  if (!isGameState(parsed)) {
+    throw new Error("deserializeGameState: estrutura de save inválida.");
+  }
+  return parsed;
+}
+
+/** Carrega o estado do jogo a partir do save. Lança erro se não existir. */
+export async function loadGame(options: SaveOptions = {}): Promise<GameState> {
+  const storage = options.storage ?? fileStorage;
+  const path = options.path ?? SAVE_FILE;
+  if (!(await storage.exists(path))) {
+    throw new Error(`loadGame: nenhum save encontrado em "${path}".`);
+  }
+  return deserializeGameState(await storage.read(path));
+}
