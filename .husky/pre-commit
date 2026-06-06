@@ -1,0 +1,2 @@
+yarn biome check --no-errors-on-unmatched
+yarn test --run

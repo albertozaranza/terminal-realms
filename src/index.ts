@@ -13,8 +13,16 @@ import "./systems";
 import "./content";
 import "./ui";
 
-function main(): void {
-  console.log("Terminal Realms — projeto inicializado.");
+/** Mensagem exibida na inicialização do jogo. Função pura para ser testável. */
+export function getStartupMessage(): string {
+  return "Terminal Realms — projeto inicializado.";
 }
 
-main();
+export function main(): void {
+  console.log(getStartupMessage());
+}
+
+// Executa apenas quando rodado diretamente (não durante import em testes).
+if (require.main === module) {
+  main();
+}
