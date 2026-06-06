@@ -43,6 +43,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T031 | Balanceamento inicial | simulação `autoBattle` |
 | T032 | Polimento (integração) | `applyVictoryRewards` |
 | T033 | Release MVP (jogável) | `runGame` + porta `GameIO`; bug de turno corrigido |
+| T034 | Sistema de i18n (Translation) | motor em `utils/i18n.ts`; estado de idioma de módulo; `t()` com fallback |
 
 ---
 
