@@ -67,8 +67,16 @@ export function createInventory(): Inventory {
  */
 export function createInitialLocationStates(region: Region): Record<string, LocationState> {
   const states: Record<string, LocationState> = {};
-  if (region.entryLocationId) {
-    states[region.entryLocationId] = "discovered";
+  const entry = region.entryLocationId;
+  if (!entry) {
+    return states;
+  }
+  states[entry] = "discovered";
+  // Revela os vizinhos diretos da entrada para a região já ter um destino
+  // inicial (descoberta em cadeia ao chegar é feita pelo sistema de descoberta).
+  const entryLocation = region.locations?.find((location) => location.id === entry);
+  for (const connectionId of entryLocation?.connections ?? []) {
+    states[connectionId] = "discovered";
   }
   return states;
 }

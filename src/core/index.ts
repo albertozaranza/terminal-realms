@@ -9,3 +9,4 @@ export * from "./GameEngine";
 export * from "./GameState";
 export * from "./rewards";
 export * from "./WorldEngine";
+export * from "./WorldMapEngine";
