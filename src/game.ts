@@ -14,7 +14,15 @@ import {
   createInitialGameState,
   type GameState,
 } from "./core";
-import { hasSave, loadGame, rollLoot, type SaveOptions, saveGame, totalItems } from "./systems";
+import {
+  applyLoadoutToPlayer,
+  hasSave,
+  loadGame,
+  rollLoot,
+  type SaveOptions,
+  saveGame,
+  totalItems,
+} from "./systems";
 import type { CharacterClass, Enemy, Item, Player, Region, Skill } from "./types";
 import { getLanguage, type Language, type Rng, randomInt, setLanguage, t } from "./utils";
 
@@ -129,7 +137,7 @@ async function resolveCombat(
   isBoss: boolean,
   rng?: Rng,
 ): Promise<{ state: GameState; outcome: CombatOutcome }> {
-  const combat = new CombatEngine(state.player, enemy);
+  const combat = new CombatEngine(applyLoadoutToPlayer(state.player, state.loadout), enemy);
   combat.start();
   const skills =
     AVAILABLE_CLASSES.find((c) => c.id === state.player.classId)?.getStartingSkills() ?? [];
@@ -186,7 +194,19 @@ async function resolveCombat(
   }
 
   const result = combat.getResult();
-  const synced: GameState = { ...state, player: combat.getPlayer() };
+  // O combate roda sobre um jogador "efetivo" (com bônus de equipamento).
+  // Sincronizamos de volta apenas hp/mana — os atributos-base persistidos
+  // não recebem os bônus (recalculados a cada combate), e os recursos são
+  // limitados aos máximos-base para não vazar bônus de maxHp/maxMana.
+  const after = combat.getPlayer();
+  const synced: GameState = {
+    ...state,
+    player: {
+      ...state.player,
+      hp: Math.min(state.player.maxHp, after.hp),
+      mana: Math.min(state.player.maxMana, after.mana),
+    },
+  };
 
   if (result.status === "defeat") {
     return { state: synced, outcome: "defeat" };

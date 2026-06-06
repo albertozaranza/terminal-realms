@@ -52,6 +52,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T050 | Overhaul de UI (TUI) | `GameRenderer` (tela cheia, clear+redraw, log limitado); telas dedicadas (menu/criação/exploração/combate/vitória/game over); ANSI art de inimigos+chefe+classes+regiões; barras coloridas. Lógica de jogo intacta (ver D-05) |
 | T051 | Unificar inventário (conclui T040) | `GameState.inventory` é o inventário canônico; campo `Player.inventory` removido (era duplicado e nunca atualizado — causava drops não aparecerem no HUD). `ExploreContext`/`ExploreScreenView` passam `itemCount` derivado de `state.inventory.items.length` |
 | T052 | Itens empilháveis | `Inventory.items` agora é `InventorySlot[]` (`{ item, quantity }`). Consumíveis empilham por id; equipamento não empilha (pilha individual). `addItem`/`removeItem` operam por unidade; novo `totalItems`. Save migra formato antigo (`Item[]`) reagrupando via `addItem` (ver D-06) |
+| T055 | Equipar (fundação) | `loadout` adicionado ao `GameState` e persistido no save (default `{}` em saves antigos). Novo `applyLoadoutToPlayer` aplica os bônus sobre uma cópia do jogador usada no combate; após o combate só hp/mana voltam ao jogador-base (atributos-base nunca recebem o bônus — ver D-07). Executada antes da T053; a interação de equipar virá com a tela |
 
 ---
 
@@ -70,6 +71,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 - **D-02 — Core desacoplada de conteúdo:** engines da `core` (WorldEngine, rewards) retornam/recebem **ids ou dados já resolvidos**, nunca importam a camada `content`. O chamador resolve ids → objetos.
 - **D-03 — Loadout separado do Player:** o conjunto de equipamentos vestidos é um `Loadout` próprio (systems), não um campo do `Player`, para não alterar o contrato do ARCHITECTURE.
 - **D-06 — Inventário por pilhas:** `Inventory.items` passou de `Item[]` para `InventorySlot[]` (`{ item, quantity }`). Empilham apenas itens não-equipamento (`!isEquipment`), refletindo o comportamento do Tibia (poções empilham, equipamento não). Saves antigos (lista crua de itens) são migrados na desserialização reagrupando via `addItem`, sem quebrar compatibilidade.
+- **D-07 — Bônus de equipamento sem corromper a base:** o `Loadout` vive em `GameState` (não no `Player`, mantendo D-03). O combate roda sobre um jogador "efetivo" (`applyLoadoutToPlayer` = base + bônus); ao fim, só `hp`/`mana` são sincronizados de volta (limitados aos máximos-base). Assim os atributos-base persistidos nunca acumulam bônus e o equipamento é recalculado a cada combate.
 - Engines não fazem I/O; a UI consome as engines. O loop jogável usa a porta **`GameIO`** (injetável), o que torna o playthrough testável.
 - `rng` injetável em todas as funções aleatórias para testes determinísticos.
 

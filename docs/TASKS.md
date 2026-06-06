@@ -823,12 +823,16 @@ Pré-requisito de leitura: CLAUDE.md, ARCHITECTURE.md, GDD.md, CONTENT_BIBLE.md.
   arma/mão, peito, anel, calças/botas) + grade da mochila com os itens, e o
   ouro exibido na parte inferior.
 - Renderizar slots vazios e ocupados de forma distinta (ANSI/boxen).
+- **Interação de equipar/desequipar** (continuação da T055): selecionar um
+  equipamento da mochila o veste no slot; selecionar um slot ocupado o
+  devolve à mochila.
 - Acessível a partir do menu de exploração.
 
 ### Critérios de Aceite
 
 - Abrir a tela mostra o conteúdo real do inventário e os slots equipados.
 - O layout remete ao inventário do Tibia (slots ao redor + mochila + ouro).
+- Equipar/desequipar pela tela atualiza `loadout` e inventário coerentemente.
 - Camada de UI sem lógica de jogo (apenas renderização + IO).
 
 ---
@@ -848,18 +852,22 @@ Pré-requisito de leitura: CLAUDE.md, ARCHITECTURE.md, GDD.md, CONTENT_BIBLE.md.
 
 ---
 
-## T055 - Equipar Equipamento
+## T055 - Equipar Equipamento (fundação)
+
+> Ordem: executada **antes** da T053, pois a tela paper-doll consome o
+> `loadout`. A **interação** de equipar/desequipar (clicar num slot) é
+> implementada junto da tela na T053.
 
 ### Objetivos
 
 - Adicionar `loadout` ao `GameState` e persistir no save.
-- Fluxo de equipar/desequipar a partir do inventário.
-- Somar `getStatBonus(loadout, ...)` nos cálculos de combate.
+- Aplicar os bônus do loadout aos atributos do jogador no combate
+  (`applyLoadoutToPlayer`), sem corromper os atributos-base persistidos.
 
 ### Critérios de Aceite
 
 - Equipar altera os atributos efetivos do jogador no combate.
-- Save/load preservam o loadout.
+- Save/load preservam o loadout (inclusive saves antigos, com default vazio).
 - Sem código morto: o sistema de equipamento passa a ser usado de fato.
 
 ---

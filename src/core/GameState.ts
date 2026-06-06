@@ -1,4 +1,4 @@
-import type { Inventory, Player, Quest, Region, Statistics } from "../types";
+import type { Inventory, Loadout, Player, Quest, Region, Statistics } from "../types";
 import { getLanguage, type Language } from "../utils";
 
 /**
@@ -9,6 +9,8 @@ export interface GameState {
   player: Player;
   currentRegion: Region;
   inventory: Inventory;
+  /** Equipamentos vestidos (bônus aplicados em combate; persistido no save). */
+  loadout: Loadout;
   activeQuest?: Quest;
   statistics: Statistics;
   /** Idioma escolhido pelo jogador (persistido no save). */
@@ -44,6 +46,7 @@ export function createInitialGameState(player: Player, currentRegion: Region): G
     player,
     currentRegion,
     inventory: createInventory(),
+    loadout: {},
     statistics: createStatistics(),
     language: getLanguage(),
   };

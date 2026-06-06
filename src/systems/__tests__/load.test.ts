@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { WarriorClass } from "../../classes";
-import { startingFields } from "../../content";
+import { rustySword, startingFields } from "../../content";
 import { createCharacter, createInitialGameState, type GameState } from "../../core";
+import { equip } from "../equipment";
 import { deserializeGameState, loadGame, type SaveStorage, saveGame } from "../save";
 
 function memoryStorage(): SaveStorage {
@@ -43,6 +44,16 @@ describe("loadGame", () => {
 
   it("throws when there is no save", async () => {
     await expect(loadGame({ storage: memoryStorage(), path: "save.json" })).rejects.toThrow();
+  });
+
+  it("persists the loadout across a round-trip", async () => {
+    const storage = memoryStorage();
+    const original = makeState();
+    original.loadout = equip(original.loadout, rustySword).loadout;
+    await saveGame(original, { storage, path: "save.json" });
+
+    const loaded = await loadGame({ storage, path: "save.json" });
+    expect(loaded.loadout.weapon?.id).toBe("rusty_sword");
   });
 });
 

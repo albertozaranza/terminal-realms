@@ -111,6 +111,8 @@ export function deserializeGameState(json: string): GameState {
   return {
     ...parsed,
     inventory: migrateInventory(parsed.inventory as { items?: unknown; gold?: unknown }),
+    // Saves anteriores ao sistema de equipamento não têm loadout.
+    loadout: parsed.loadout ?? {},
   };
 }
 
