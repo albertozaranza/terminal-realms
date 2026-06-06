@@ -69,6 +69,10 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 - Engines não fazem I/O; a UI consome as engines. O loop jogável usa a porta **`GameIO`** (injetável), o que torna o playthrough testável.
 - `rng` injetável em todas as funções aleatórias para testes determinísticos.
 
+### Correções
+
+- **Habilidade em cooldown encerrava o jogo:** o menu de combate listava skills em cooldown como selecionáveis; ao escolher uma, o `throw` de `CombatEngine.useSkill` subia até o handler global e fechava o jogo. Agora `combatAction` recebe `CombatSkillOption[]` (skill + cooldown atual) e a UI **desabilita** a habilidade mostrando `volta em N turno(s)` (chave i18n `combat.cooldown`, pt-BR/en). Defesa em profundidade: mensagens de erro de cooldown/mana passaram a traduzir o nome via `t(skill.name)` em vez de exibir a chave crua.
+
 ### Pendências assumidas (viram backlog na Fase 11)
 
 - **D-01 — Efeito numérico das habilidades:** `Skill.execute()` retorna efeito neutro (`damage/healing = 0`) porque o contrato `execute(caster: Entity, target: Entity)` não dá acesso aos atributos. Resolver exige mudança no contrato → **T039**.

@@ -6,8 +6,14 @@
  * Os textos da interface passam pelo i18n (t()).
  */
 import inquirer from "inquirer";
-import { type CombatChoice, type ExploreAction, type GameIO, runGame } from "./game";
-import type { CharacterClass, Skill } from "./types";
+import {
+  type CombatChoice,
+  type CombatSkillOption,
+  type ExploreAction,
+  type GameIO,
+  runGame,
+} from "./game";
+import type { CharacterClass } from "./types";
 import { renderLogo } from "./ui";
 import { type Language, SUPPORTED_LANGUAGES, t } from "./utils";
 
@@ -90,7 +96,7 @@ const cliIO: GameIO = {
     return action;
   },
 
-  combatAction: async (skills: readonly Skill[]) => {
+  combatAction: async (options: readonly CombatSkillOption[]) => {
     const { action } = await inquirer.prompt<{ action: string }>([
       {
         type: "list",
@@ -98,7 +104,11 @@ const cliIO: GameIO = {
         message: t("prompt.combatAction"),
         choices: [
           { name: t("combat.attack"), value: "attack" },
-          ...skills.map((skill) => ({ name: t(skill.name), value: `skill:${skill.id}` })),
+          ...options.map(({ skill, cooldown }) => ({
+            name: t(skill.name),
+            value: `skill:${skill.id}`,
+            disabled: cooldown > 0 ? t("combat.cooldown", { turns: cooldown }) : false,
+          })),
           { name: t("combat.flee"), value: "flee" },
         ],
       },
@@ -107,7 +117,7 @@ const cliIO: GameIO = {
       return action as CombatChoice;
     }
     const skillId = action.replace("skill:", "");
-    const skill = skills.find((s) => s.id === skillId);
+    const skill = options.find((o) => o.skill.id === skillId)?.skill;
     return skill ? { type: "skill", skill } : "attack";
   },
 };

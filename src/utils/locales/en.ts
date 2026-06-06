@@ -58,6 +58,7 @@ export const en: TranslationCatalog = {
   "explore.menu": "Back to menu",
   "combat.attack": "Attack",
   "combat.flee": "Flee",
+  "combat.cooldown": "ready in {turns} turn(s)",
   "combat.appeared": "A {name} appeared!",
   "combat.enemyHp": "{name}: {hp} HP",
   "combat.playerHit": "You dealt {damage} damage.",

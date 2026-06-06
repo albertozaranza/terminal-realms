@@ -30,6 +30,13 @@ export type ExploreAction = "explore" | "boss" | "save" | "menu";
 /** Escolha do jogador durante um turno de combate. */
 export type CombatChoice = "attack" | "flee" | { type: "skill"; skill: Skill };
 
+/** Habilidade disponível no menu de combate, com o cooldown atual (em rodadas). */
+export interface CombatSkillOption {
+  skill: Skill;
+  /** Rodadas restantes de cooldown; 0 quando a habilidade está pronta. */
+  cooldown: number;
+}
+
 /** Resultado de um combate na sessão. */
 export type CombatOutcome = "victory" | "defeat" | "fled";
 
@@ -45,7 +52,7 @@ export interface GameIO {
   chooseClass(classes: readonly CharacterClass[]): Promise<CharacterClass>;
   chooseLanguage(current: Language): Promise<Language>;
   exploreAction(): Promise<ExploreAction>;
-  combatAction(skills: readonly Skill[]): Promise<CombatChoice>;
+  combatAction(skills: readonly CombatSkillOption[]): Promise<CombatChoice>;
 }
 
 /** Opções de execução do jogo (storage de save e fonte de aleatoriedade). */
@@ -98,7 +105,9 @@ async function resolveCombat(
     await io.render(
       `${renderHUD(combat.getPlayer())}\n${t("combat.enemyHp", { name: enemyName, hp: combat.getEnemy().hp })}`,
     );
-    const choice = await io.combatAction(skills);
+    const choice = await io.combatAction(
+      skills.map((skill) => ({ skill, cooldown: combat.getSkillCooldown(skill.id) })),
+    );
 
     if (choice === "flee") {
       return { state, outcome: "fled" };

@@ -113,10 +113,10 @@ export class CombatEngine {
   useSkill(skill: Skill): SkillUseOutcome {
     this.ensureActable();
     if (this.isOnCooldown(skill.id)) {
-      throw new Error(t("error.combat.skillOnCooldown", { name: skill.name }));
+      throw new Error(t("error.combat.skillOnCooldown", { name: t(skill.name) }));
     }
     if (this.player.mana < skill.manaCost) {
-      throw new Error(t("error.combat.notEnoughMana", { name: skill.name }));
+      throw new Error(t("error.combat.notEnoughMana", { name: t(skill.name) }));
     }
 
     this.player.mana -= skill.manaCost;

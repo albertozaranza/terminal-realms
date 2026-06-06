@@ -59,6 +59,7 @@ export const ptBR: TranslationCatalog = {
   "explore.menu": "Voltar ao menu",
   "combat.attack": "Atacar",
   "combat.flee": "Fugir",
+  "combat.cooldown": "volta em {turns} turno(s)",
   "combat.appeared": "Um {name} apareceu!",
   "combat.enemyHp": "{name}: {hp} HP",
   "combat.playerHit": "Você causou {damage} de dano.",
