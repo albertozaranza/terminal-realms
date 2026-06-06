@@ -1,5 +1,5 @@
 import { promises as fs } from "node:fs";
-import { type GameState, SAVE_FILE } from "../core";
+import { createInitialLocationStates, type GameState, SAVE_FILE } from "../core";
 import type { Inventory, Item } from "../types";
 import { SUPPORTED_LANGUAGES, setLanguage, t } from "../utils";
 import { addItem } from "./inventory";
@@ -108,11 +108,20 @@ export function deserializeGameState(json: string): GameState {
   if (!isGameState(parsed)) {
     throw new Error(t("error.save.invalidStructure"));
   }
+  const raw = parsed as unknown as Record<string, unknown>;
   return {
     ...parsed,
     inventory: migrateInventory(parsed.inventory as { items?: unknown; gold?: unknown }),
     // Saves anteriores ao sistema de equipamento não têm loadout.
     loadout: parsed.loadout ?? {},
+    // Saves anteriores ao mundo de descoberta (FASE 16) não têm estes campos.
+    currentLocationId:
+      (raw.currentLocationId as string | undefined) ?? parsed.currentRegion.entryLocationId,
+    locationStates:
+      (raw.locationStates as GameState["locationStates"]) ??
+      createInitialLocationStates(parsed.currentRegion),
+    knowledge: Array.isArray(raw.knowledge) ? (raw.knowledge as string[]) : [],
+    npcStates: (raw.npcStates as GameState["npcStates"]) ?? {},
   };
 }
 

@@ -66,6 +66,19 @@ describe("deserializeGameState", () => {
     expect(() => deserializeGameState(JSON.stringify({ foo: 1 }))).toThrow();
   });
 
+  it("defaults discovery fields for legacy saves (pre-FASE 16)", () => {
+    const legacy = makeState() as unknown as Record<string, unknown>;
+    legacy.currentLocationId = undefined;
+    legacy.locationStates = undefined;
+    legacy.knowledge = undefined;
+    legacy.npcStates = undefined;
+
+    const migrated = deserializeGameState(JSON.stringify(legacy));
+    expect(migrated.knowledge).toEqual([]);
+    expect(migrated.locationStates).toEqual({});
+    expect(migrated.npcStates).toEqual({});
+  });
+
   it("migrates a legacy inventory (bare Item[]) into stacks", () => {
     const legacy = makeState() as unknown as Record<string, unknown>;
     // Formato antigo: items era uma lista de itens crus, com duplicatas soltas.
