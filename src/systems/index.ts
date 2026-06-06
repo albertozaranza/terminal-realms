@@ -1,5 +1,6 @@
 // Camada Systems — sistemas reutilizáveis (Inventory, Equipment, Loot, Quest, Save).
 export * from "./consumable";
+export * from "./dialogue";
 export * from "./discovery";
 export * from "./equipment";
 export * from "./inventory";
