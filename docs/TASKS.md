@@ -891,14 +891,15 @@ Pré-requisito de leitura: CLAUDE.md, ARCHITECTURE.md, GDD.md, CONTENT_BIBLE.md.
 
 # FASE 15 — PROGRESSÃO & DIVERSIDADE — 🗄️ BACKLOG (design antes de implementar)
 
-## T057
+## T057 — ✅ Design entregue (aguardando aprovação)
 
-Documento de design de progressão (`docs/PROGRESSAO.md`).
+Documento de design de progressão: [PROGRESSAO.md](PROGRESSAO.md).
 
-Hoje há níveis até 50, mas inimigos só vão a Lv1 (comuns) e Lv5 (boss). Definir
-escalonamento (dinâmico por nível do jogador ou faixas por região), faixas
-intermediárias de inimigos, curva de XP/recompensa e integração com T047
-(novas regiões) e T048 (novos chefes). Não implementar antes do design aprovado.
+Hoje há níveis até 50, mas inimigos só vão a Lv1–4 (comuns) e Lv5 (boss). O
+documento define abordagens (escalonamento dinâmico, faixas por região,
+híbrido — recomendado), esboço técnico (`scaleEnemy`), curva de XP/recompensa
+e integração com T047 (novas regiões) e T048 (novos chefes). A **implementação**
+permanece em backlog até a aprovação das decisões em aberto do documento.
 
 ## T058
 
