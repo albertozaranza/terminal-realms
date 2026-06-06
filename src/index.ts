@@ -22,6 +22,7 @@ import {
 import type { CharacterClass } from "./types";
 import {
   GameRenderer,
+  GrayListPrompt,
   renderClassGallery,
   renderCombatScreen,
   renderCreationIntro,
@@ -34,6 +35,9 @@ import {
 import { type Language, SUPPORTED_LANGUAGES, t } from "./utils";
 
 const renderer = new GameRenderer();
+
+// List que esmaece (cinza) itens indisponíveis em vez de prefixá-los com `-`.
+inquirer.registerPrompt("grayList", GrayListPrompt);
 
 /** Aguarda o jogador pressionar Enter (telas terminais). */
 async function pressEnter(): Promise<void> {
@@ -129,7 +133,7 @@ const cliIO: GameIO = {
     renderer.paint(renderCombatScreen(context, renderer.width));
     const { action } = await inquirer.prompt<{ action: string }>([
       {
-        type: "list",
+        type: "grayList",
         name: "action",
         message: t("prompt.combatAction"),
         choices: [
@@ -137,7 +141,12 @@ const cliIO: GameIO = {
           ...options.map(({ skill, cooldown }) => ({
             name: t(skill.name),
             value: `skill:${skill.id}`,
-            disabled: cooldown > 0 ? t("combat.cooldown", { turns: cooldown }) : false,
+            disabled:
+              cooldown > 0
+                ? t("combat.cooldown", { turns: cooldown })
+                : context.player.mana < skill.manaCost
+                  ? t("combat.noMana", { cost: skill.manaCost })
+                  : false,
           })),
           { name: t("combat.flee"), value: "flee" },
         ],

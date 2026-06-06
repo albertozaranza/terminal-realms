@@ -2,5 +2,6 @@
 export * from "./ansi";
 export * from "./components";
 export * from "./menus";
+export * from "./prompts/grayListPrompt";
 export * from "./screen";
 export * from "./screens";
