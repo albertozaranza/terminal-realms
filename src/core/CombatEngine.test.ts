@@ -99,3 +99,36 @@ describe("CombatEngine", () => {
     expect(() => combat.playerAttack()).toThrow();
   });
 });
+
+describe("CombatEngine — turnos", () => {
+  it("começa no turno do jogador na rodada 1", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    expect(combat.getCurrentTurn()).toBe("player");
+    expect(combat.getRound()).toBe(1);
+  });
+
+  it("alterna entre jogador e inimigo", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    combat.endTurn();
+    expect(combat.getCurrentTurn()).toBe("enemy");
+    combat.endTurn();
+    expect(combat.getCurrentTurn()).toBe("player");
+  });
+
+  it("incrementa a rodada ao voltar para o jogador", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    combat.endTurn(); // enemy, rodada 1
+    combat.endTurn(); // player, rodada 2
+    expect(combat.getRound()).toBe(2);
+  });
+
+  it("não permite encerrar turno com o combate finalizado", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy({ hp: 1, defense: 0 }));
+    combat.start();
+    combat.playerAttack();
+    expect(() => combat.endTurn()).toThrow();
+  });
+});

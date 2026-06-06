@@ -4,6 +4,9 @@ import { computeDamage, getPlayerAttack } from "./damage";
 /** Situação atual do combate. */
 export type CombatStatus = "ongoing" | "victory" | "defeat";
 
+/** Combatente que age no turno atual. */
+export type Combatant = "player" | "enemy";
+
 /** Resultado de uma ação de ataque. */
 export interface AttackOutcome {
   damage: number;
@@ -24,6 +27,8 @@ export class CombatEngine {
   protected readonly player: Player;
   protected readonly enemy: Enemy;
   protected status: CombatStatus = "ongoing";
+  protected currentTurn: Combatant = "player";
+  protected round = 1;
   private started = false;
 
   constructor(player: Player, enemy: Enemy) {
@@ -37,7 +42,31 @@ export class CombatEngine {
       throw new Error("CombatEngine: o combate já foi iniciado.");
     }
     this.started = true;
+    this.currentTurn = "player";
+    this.round = 1;
     this.refreshStatus();
+  }
+
+  getCurrentTurn(): Combatant {
+    return this.currentTurn;
+  }
+
+  getRound(): number {
+    return this.round;
+  }
+
+  /**
+   * Encerra o turno atual e passa a vez. Ao voltar para o jogador,
+   * uma nova rodada começa.
+   */
+  endTurn(): void {
+    this.ensureActable();
+    if (this.currentTurn === "player") {
+      this.currentTurn = "enemy";
+    } else {
+      this.currentTurn = "player";
+      this.round += 1;
+    }
   }
 
   /** Reavalia o estado a partir do HP dos combatentes. */
