@@ -27,11 +27,20 @@
     "@biomejs/biome": "^2.4.16",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
+    "@types/figlet": "^1.7.0",
+    "@types/inquirer": "^8",
     "@types/node": "^22.0.0",
     "husky": "^9.1.7",
     "rimraf": "^5.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.0",
     "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "figlet": "^1.7.0",
+    "inquirer": "^8.2.6"
   }
 }
