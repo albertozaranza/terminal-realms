@@ -7,4 +7,5 @@ export * from "./events";
 export * from "./experience";
 export * from "./GameEngine";
 export * from "./GameState";
+export * from "./rewards";
 export * from "./WorldEngine";
