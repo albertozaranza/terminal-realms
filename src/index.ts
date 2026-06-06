@@ -1,9 +1,18 @@
 /**
  * Terminal Realms — ponto de entrada.
  *
- * Esta é apenas a inicialização do projeto (T001).
- * O loop principal do jogo será implementado nas tarefas seguintes.
+ * Os imports abaixo validam a estrutura de diretórios (T002) e a
+ * resolução de módulos entre as camadas. O conteúdo de cada camada
+ * será implementado nas tarefas seguintes.
  */
+import "./types";
+import "./utils";
+import "./core";
+import "./classes";
+import "./systems";
+import "./content";
+import "./ui";
+
 function main(): void {
   console.log("Terminal Realms — projeto inicializado.");
 }
