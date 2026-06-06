@@ -54,6 +54,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T052 | Itens empilháveis | `Inventory.items` agora é `InventorySlot[]` (`{ item, quantity }`). Consumíveis empilham por id; equipamento não empilha (pilha individual). `addItem`/`removeItem` operam por unidade; novo `totalItems`. Save migra formato antigo (`Item[]`) reagrupando via `addItem` (ver D-06) |
 | T055 | Equipar (fundação) | `loadout` adicionado ao `GameState` e persistido no save (default `{}` em saves antigos). Novo `applyLoadoutToPlayer` aplica os bônus sobre uma cópia do jogador usada no combate; após o combate só hp/mana voltam ao jogador-base (atributos-base nunca recebem o bônus — ver D-07). Executada antes da T053; a interação de equipar virá com a tela |
 | T053 | Tela de inventário (estilo Tibia) | `inventoryScreen` paper-doll: slots de equipamento ao redor do corpo (mini-painéis, nome truncado p/ grade uniforme) + mochila com quantidades + ouro. Ação "Inventário" no menu de exploração; `GameIO.inventory` + loop `manageInventory` que equipa/desequipa via `equipFromInventory`/`unequipToInventory` (item ⇄ mochila) e salva ao fechar |
+| T054 | Usar consumíveis | `useConsumable` (puro, clampa HP/Mana). Fora do combate: ação "Usar" na tela de inventário (mostra HP/Mana). Em combate: ação "item" no menu (`CombatEngine.useItem`), que consome o turno; o inventário é descontado durante o combate e sincronizado ao fim (inclusive em fuga) |
 
 ---
 

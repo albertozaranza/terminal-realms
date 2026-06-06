@@ -21,7 +21,7 @@ import {
   type InventoryContext,
   runGame,
 } from "./game";
-import { isEquipment } from "./systems";
+import { isConsumable, isEquipment } from "./systems";
 import type { CharacterClass, EquipmentSlot } from "./types";
 import {
   GameRenderer,
@@ -143,6 +143,12 @@ const cliIO: GameIO = {
         name: t("inventory.equip", { item: t(slot.item.name) }),
         value: `equip:${slot.item.id}`,
       }));
+    const useChoices = context.items
+      .filter((slot) => isConsumable(slot.item))
+      .map((slot) => ({
+        name: t("inventory.use", { item: t(slot.item.name), quantity: slot.quantity }),
+        value: `use:${slot.item.id}`,
+      }));
     const unequipChoices = Object.entries(context.loadout)
       .filter(([, item]) => item !== undefined)
       .map(([slot, item]) => ({
@@ -157,6 +163,7 @@ const cliIO: GameIO = {
         message: t("inventory.action"),
         choices: [
           ...equipChoices,
+          ...useChoices,
           ...unequipChoices,
           { name: t("inventory.close"), value: "close" },
         ],
@@ -165,6 +172,9 @@ const cliIO: GameIO = {
 
     if (action.startsWith("equip:")) {
       return { type: "equip", itemId: action.slice("equip:".length) };
+    }
+    if (action.startsWith("use:")) {
+      return { type: "use", itemId: action.slice("use:".length) };
     }
     if (action.startsWith("unequip:")) {
       return { type: "unequip", slot: action.slice("unequip:".length) as EquipmentSlot };
@@ -191,12 +201,21 @@ const cliIO: GameIO = {
                   ? t("combat.noMana", { cost: skill.manaCost })
                   : false,
           })),
+          ...context.items.map(({ item, quantity }) => ({
+            name: t("combat.item", { item: t(item.name), quantity }),
+            value: `item:${item.id}`,
+          })),
           { name: t("combat.flee"), value: "flee" },
         ],
       },
     ]);
     if (action === "attack" || action === "flee") {
       return action as CombatChoice;
+    }
+    if (action.startsWith("item:")) {
+      const itemId = action.slice("item:".length);
+      const item = context.items.find((option) => option.item.id === itemId)?.item;
+      return item ? { type: "item", item } : "attack";
     }
     const skillId = action.replace("skill:", "");
     const skill = options.find((o) => o.skill.id === skillId)?.skill;

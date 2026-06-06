@@ -18,15 +18,19 @@ import {
   applyLoadoutToPlayer,
   equipFromInventory,
   hasSave,
+  isConsumable,
   loadGame,
+  removeItem,
   rollLoot,
   type SaveOptions,
   saveGame,
   totalItems,
   unequipToInventory,
+  useConsumable,
 } from "./systems";
 import type {
   CharacterClass,
+  Consumable,
   Enemy,
   EquipmentSlot,
   InventorySlot,
@@ -48,6 +52,7 @@ export type ExploreAction = "explore" | "boss" | "inventory" | "save" | "menu";
 
 /** Contexto da tela de inventário (somente leitura, para a UI desenhar). */
 export interface InventoryContext {
+  player: Player;
   loadout: Loadout;
   items: readonly InventorySlot[];
   gold: number;
@@ -57,16 +62,27 @@ export interface InventoryContext {
 export type InventoryChoice =
   | { type: "equip"; itemId: string }
   | { type: "unequip"; slot: EquipmentSlot }
+  | { type: "use"; itemId: string }
   | { type: "close" };
 
 /** Escolha do jogador durante um turno de combate. */
-export type CombatChoice = "attack" | "flee" | { type: "skill"; skill: Skill };
+export type CombatChoice =
+  | "attack"
+  | "flee"
+  | { type: "skill"; skill: Skill }
+  | { type: "item"; item: Consumable };
 
 /** Habilidade disponível no menu de combate, com o cooldown atual (em rodadas). */
 export interface CombatSkillOption {
   skill: Skill;
   /** Rodadas restantes de cooldown; 0 quando a habilidade está pronta. */
   cooldown: number;
+}
+
+/** Consumível disponível no menu de combate, com a quantidade carregada. */
+export interface CombatItemOption {
+  item: Consumable;
+  quantity: number;
 }
 
 /** Resultado de um combate na sessão. */
@@ -95,6 +111,8 @@ export interface CombatContext {
   player: Player;
   enemy: CombatEnemyView;
   isBoss: boolean;
+  /** Consumíveis disponíveis para usar no combate (ação "item"). */
+  items: readonly CombatItemOption[];
 }
 
 /** Contexto das telas de fim de jogo (vitória/derrota). */
@@ -156,6 +174,13 @@ function rewardVictory(
   return { state: next, leveledUp };
 }
 
+/** Lista os consumíveis disponíveis (com quantidade) de um inventário. */
+function consumableOptions(inventory: GameState["inventory"]): CombatItemOption[] {
+  return inventory.items.flatMap((slot) =>
+    isConsumable(slot.item) ? [{ item: slot.item, quantity: slot.quantity }] : [],
+  );
+}
+
 /** Resolve um combate completo de forma interativa via a porta de IO. */
 async function resolveCombat(
   io: GameIO,
@@ -172,6 +197,8 @@ async function resolveCombat(
   const enemyName = localizedName(enemy.id);
   // maxHp do inimigo = hp do template original (a engine opera sobre cópias).
   const enemyMaxHp = enemy.hp;
+  // Inventário acompanha o combate: consumíveis usados são descontados aqui.
+  let inventory = state.inventory;
   await io.render(t("combat.appeared", { name: enemyName }));
 
   while (!combat.isOver()) {
@@ -185,6 +212,7 @@ async function resolveCombat(
         maxHp: enemyMaxHp,
       },
       isBoss,
+      items: consumableOptions(inventory),
     };
     const choice = await io.combatAction(
       context,
@@ -192,12 +220,12 @@ async function resolveCombat(
     );
 
     if (choice === "flee") {
-      return { state, outcome: "fled" };
+      return { state: { ...state, inventory }, outcome: "fled" };
     }
     if (choice === "attack") {
       const hit = combat.playerAttack();
       await io.render(t("combat.playerHit", { damage: hit.damage }));
-    } else {
+    } else if (choice.type === "skill") {
       const { result } = combat.useSkill(choice.skill);
       await io.render(t(result.message));
       if (result.damage > 0) {
@@ -205,6 +233,16 @@ async function resolveCombat(
       }
       if (result.healing > 0) {
         await io.render(t("combat.heal", { amount: result.healing }));
+      }
+    } else {
+      const outcome = combat.useItem(choice.item);
+      inventory = removeItem(inventory, choice.item.id);
+      await io.render(t("combat.usedItem", { item: t(choice.item.name) }));
+      if (outcome.hpRestored > 0) {
+        await io.render(t("combat.heal", { amount: outcome.hpRestored }));
+      }
+      if (outcome.manaRestored > 0) {
+        await io.render(t("combat.manaRestored", { amount: outcome.manaRestored }));
       }
     }
 
@@ -228,6 +266,7 @@ async function resolveCombat(
   const after = combat.getPlayer();
   const synced: GameState = {
     ...state,
+    inventory,
     player: {
       ...state.player,
       hp: Math.min(state.player.maxHp, after.hp),
@@ -262,12 +301,26 @@ async function manageInventory(
 
   while (true) {
     const choice = await io.inventory({
+      player: current.player,
       loadout: current.loadout,
       items: current.inventory.items,
       gold: current.inventory.gold,
     });
     if (choice.type === "close") {
       break;
+    }
+
+    if (choice.type === "use") {
+      const slot = current.inventory.items.find((entry) => entry.item.id === choice.itemId);
+      if (slot && isConsumable(slot.item)) {
+        current = {
+          ...current,
+          player: useConsumable(current.player, slot.item),
+          inventory: removeItem(current.inventory, choice.itemId),
+        };
+        changed = true;
+      }
+      continue;
     }
 
     const equipState = { inventory: current.inventory, loadout: current.loadout };

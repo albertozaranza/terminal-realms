@@ -1,10 +1,11 @@
 import chalk from "chalk";
-import type { EquipmentSlot, InventorySlot, Loadout, Rarity } from "../../types";
+import type { EquipmentSlot, InventorySlot, Loadout, Player, Rarity } from "../../types";
 import { t } from "../../utils";
 import { columns, panel } from "../components";
 
 /** Dados necessários para desenhar a tela de inventário (somente leitura). */
 export interface InventoryScreenView {
+  player: Player;
   loadout: Loadout;
   items: readonly InventorySlot[];
   gold: number;
@@ -61,7 +62,7 @@ function spacerCell(): string {
  * ouro na parte inferior.
  */
 export function renderInventoryScreen(view: InventoryScreenView, width: number): string {
-  const { loadout, items, gold } = view;
+  const { player, loadout, items, gold } = view;
 
   const dollRows = [
     columns([slotCell("amulet", loadout), slotCell("helmet", loadout), spacerCell()], 2),
@@ -89,9 +90,12 @@ export function renderInventoryScreen(view: InventoryScreenView, width: number):
           .join("\n")
       : chalk.dim(t("inventory.emptyBackpack"));
 
+  const statusLine = `${chalk.red(
+    t("inventory.hp", { hp: player.hp, maxHp: player.maxHp }),
+  )}   ${chalk.blue(t("inventory.mana", { mana: player.mana, maxMana: player.maxMana }))}`;
   const goldLine = chalk.yellow(`◈ ${t("inventory.gold", { gold })}`);
 
-  const backpack = panel(`${backpackBody}\n\n${goldLine}`, {
+  const backpack = panel(`${backpackBody}\n\n${statusLine}\n${goldLine}`, {
     title: t("inventory.backpack"),
     width,
     borderColor: "yellow",

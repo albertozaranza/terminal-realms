@@ -1,4 +1,4 @@
-import type { Enemy, Player, Skill, SkillResult } from "../types";
+import type { Consumable, Enemy, Player, Skill, SkillResult } from "../types";
 import { t } from "../utils";
 import { computeDamage, getPlayerAttack } from "./damage";
 
@@ -18,6 +18,12 @@ export interface AttackOutcome {
 export interface SkillUseOutcome {
   result: SkillResult;
   manaSpent: number;
+}
+
+/** Resultado do uso de um consumível em combate. */
+export interface ItemUseOutcome {
+  hpRestored: number;
+  manaRestored: number;
 }
 
 /** Resultado final do combate. */
@@ -157,6 +163,28 @@ export class CombatEngine {
     this.refreshStatus();
 
     return { result, manaSpent: skill.manaCost };
+  }
+
+  /**
+   * Usa um consumível: recupera HP/Mana do jogador (limitado aos máximos
+   * efetivos, que já incluem bônus de equipamento). Não altera o estado do
+   * combate — curar não derrota ninguém. A remoção do item do inventário é
+   * responsabilidade do chamador.
+   */
+  useItem(consumable: Consumable): ItemUseOutcome {
+    this.ensureActable();
+    const beforeHp = this.player.hp;
+    const beforeMana = this.player.mana;
+    if (consumable.effect.hp) {
+      this.player.hp = Math.min(this.player.maxHp, this.player.hp + consumable.effect.hp);
+    }
+    if (consumable.effect.mana) {
+      this.player.mana = Math.min(this.player.maxMana, this.player.mana + consumable.effect.mana);
+    }
+    return {
+      hpRestored: this.player.hp - beforeHp,
+      manaRestored: this.player.mana - beforeMana,
+    };
   }
 
   /** Reavalia o estado a partir do HP dos combatentes. */

@@ -100,6 +100,42 @@ describe("CombatEngine", () => {
   });
 });
 
+describe("CombatEngine — useItem", () => {
+  const healPotion = {
+    id: "small_potion",
+    name: "name.small_potion",
+    description: "",
+    rarity: "common" as const,
+    value: 10,
+    effect: { hp: 25 },
+  };
+
+  it("restores hp clamped to the maximum and reports the amount", () => {
+    const combat = new CombatEngine(makePlayer({ hp: 10, maxHp: 100 }), makeEnemy());
+    combat.start();
+    const outcome = combat.useItem(healPotion);
+    expect(outcome.hpRestored).toBe(25);
+    expect(combat.getPlayer().hp).toBe(35);
+  });
+
+  it("does not heal beyond the maximum", () => {
+    const combat = new CombatEngine(makePlayer({ hp: 90, maxHp: 100 }), makeEnemy());
+    combat.start();
+    const outcome = combat.useItem(healPotion);
+    expect(outcome.hpRestored).toBe(10);
+    expect(combat.getPlayer().hp).toBe(100);
+  });
+
+  it("restores mana from a mana potion", () => {
+    const manaPotion = { ...healPotion, id: "mana_potion", effect: { mana: 50 } };
+    const combat = new CombatEngine(makePlayer({ mana: 0, maxMana: 30 }), makeEnemy());
+    combat.start();
+    const outcome = combat.useItem(manaPotion);
+    expect(outcome.manaRestored).toBe(30);
+    expect(combat.getPlayer().mana).toBe(30);
+  });
+});
+
 describe("CombatEngine — turns", () => {
   it("starts on the player's turn in round 1", () => {
     const combat = new CombatEngine(makePlayer(), makeEnemy());
