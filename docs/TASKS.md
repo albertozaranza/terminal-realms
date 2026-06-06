@@ -26,6 +26,7 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 | 10 — Internacionalização (i18n) | T034–T038 | ✅ Concluída |
 | 11 — Refinamentos Técnicos | T039–T042 | 🗄️ Backlog |
 | 12 — Roadmap Futuro | T043–T049 | 🗄️ Backlog |
+| 13 — Overhaul de UI (TUI) | T050 | ✅ Concluída |
 
 O histórico detalhado de conclusão e as decisões técnicas ficam em [PROGRESS.md](PROGRESS.md).
 
@@ -733,6 +734,37 @@ Novos chefes
 ## T049
 
 Modo Hardcore
+
+---
+
+# FASE 13 — OVERHAUL DE UI (TUI) — ✅ CONCLUÍDA
+
+Objetivo: transformar a interface em uma aplicação de terminal de tela
+cheia (TUI), conforme `docs/spec.md`. Sem alterar regras de negócio
+(combate, progressão, XP, loot, classes, save) — apenas UI, renderização,
+ANSI art, menus e feedback visual.
+
+---
+
+## T050 - Renderização baseada em estado + ANSI art
+
+### Objetivos
+
+- `GameRenderer` que limpa e redesenha a tela inteira a cada mudança de
+  estado (sem acumular log, sem scroll); painel de histórico limitado.
+- Telas dedicadas: menu, criação de personagem (galeria de classes),
+  exploração (faixa temática da região), combate (arte do inimigo/chefe
+  + barras coloridas), vitória e game over.
+- ANSI art para inimigos (goblin, lobo, esqueleto, orc) e chefe maior,
+  artes de classe e temas de região; barras coloridas por limiar.
+- Componentes reutilizáveis: `panel`, `center`, `columns`, `divider`,
+  `coloredBar`, `renderLogPanel`.
+
+### Critérios de Aceite
+
+- A interface não cresce indefinidamente nem exige scroll.
+- O usuário enxerga apenas o estado atual do jogo.
+- Sem alterar a lógica de jogo; `tsc`, Biome, testes e build passam.
 
 ---
 

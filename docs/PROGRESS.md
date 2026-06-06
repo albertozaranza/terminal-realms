@@ -49,6 +49,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T037 | Seleção de idioma pelo usuário | opção "Idioma" no menu; UI/mensagens via `t()`; `GameState.language` persistido e restaurado no load |
 | T037+ | Localização total de conteúdo | nomes/descrições de classes, inimigos, chefe, itens, skills, regiões e mensagens de skills/eventos agora são chaves i18n resolvidas via `t()` (pt-BR/en); HUD e menu legado também localizados. Conteúdo sem texto humano hardcoded. ASCII art (T028) permanece com rótulos embutidos e não é exibida no fluxo atual |
 | T038 | Padronização e isolamento dos testes | todas as descrições `describe`/`it` em inglês; cada teste movido para `__tests__/` no seu path; imports relativos ajustados |
+| T050 | Overhaul de UI (TUI) | `GameRenderer` (tela cheia, clear+redraw, log limitado); telas dedicadas (menu/criação/exploração/combate/vitória/game over); ANSI art de inimigos+chefe+classes+regiões; barras coloridas. Lógica de jogo intacta (ver D-05) |
 
 ---
 
@@ -68,6 +69,25 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 - **D-03 — Loadout separado do Player:** o conjunto de equipamentos vestidos é um `Loadout` próprio (systems), não um campo do `Player`, para não alterar o contrato do ARCHITECTURE.
 - Engines não fazem I/O; a UI consome as engines. O loop jogável usa a porta **`GameIO`** (injetável), o que torna o playthrough testável.
 - `rng` injetável em todas as funções aleatórias para testes determinísticos.
+
+### UI / Renderização
+
+- **D-05 — Overhaul de UI sem mexer na lógica:** o spec pedia uma TUI de
+  tela cheia. Mantive `CombatEngine`/progressão/XP/loot/classes/save
+  intactos e toquei só na camada `ui` e na cola de I/O. Para alimentar as
+  telas ricas sem quebrar a porta testável, enriqueci os **parâmetros** de
+  `GameIO` (`exploreAction(context)`, `combatAction(context, skills)`) —
+  compatível por estrutura com os fakes dos testes, que ignoram args — e
+  adicionei hooks **opcionais** `victory?`/`gameOver?`. Todos os
+  `io.render(t(...))` foram preservados, então as asserções de texto dos
+  testes continuam válidas.
+- **Renderer stateful:** `GameRenderer` guarda a cena atual + um buffer de
+  log (limite 6) e, a cada `paint()`, limpa a tela (`ESC[2J/3J/H`) e
+  redesenha cena + painel de log numa única escrita. O `maxHp` do inimigo
+  em combate vem do template original (a engine opera sobre cópias).
+- **boxen v5:** sem opção `width` e com `Options` `readonly`; a largura
+  fixa dos painéis é obtida preenchendo o conteúdo (`panel({ width })`),
+  não pela lib.
 
 ### Correções
 

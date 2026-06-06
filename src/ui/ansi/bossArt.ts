@@ -1,14 +1,26 @@
 import { t } from "../../utils";
 
-/** Arte ASCII de cada chefe, indexada pelo id do chefe. */
+/**
+ * Arte ASCII de cada chefe, indexada pelo id do chefe.
+ *
+ * As artes de chefe são maiores e mais imponentes que as de inimigos
+ * comuns, para reforçar a sensação de um encontro importante. São puras
+ * (sem rótulos): o nome localizado é composto pela camada de UI.
+ */
 const BOSS_ART: Readonly<Record<string, string>> = {
   goblin_king: [
-    "    ,~~.    ",
-    "   ( o o )  ",
-    "  /   ^   \\ ",
-    " |  \\___/  |",
-    "  \\_______/ ",
-    "  REI GOBLIN",
+    "        .-=========-.        ",
+    "        \\'-=======-'/        ",
+    "        _|  .---.  |_        ",
+    "       ((|  (o o)  |))       ",
+    "        \\|   ^^^   |/        ",
+    "         \\  '---'  /         ",
+    "       .--`-.___.-'--.       ",
+    "      /  /|       |\\  \\      ",
+    "     /  / |  WAR  | \\  \\     ",
+    "    |__/  |_______|  \\__|    ",
+    "         /__|   |__\\         ",
+    "        (___)   (___)        ",
   ].join("\n"),
 };
 

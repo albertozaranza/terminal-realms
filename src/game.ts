@@ -15,8 +15,7 @@ import {
   type GameState,
 } from "./core";
 import { hasSave, loadGame, rollLoot, type SaveOptions, saveGame } from "./systems";
-import type { CharacterClass, Enemy, Item, Skill } from "./types";
-import { renderHUD } from "./ui";
+import type { CharacterClass, Enemy, Item, Player, Region, Skill } from "./types";
 import { getLanguage, type Language, type Rng, randomInt, setLanguage, t } from "./utils";
 
 /** Nome localizado de uma entidade pelo seu id (fallback para o id). */
@@ -40,6 +39,36 @@ export interface CombatSkillOption {
 /** Resultado de um combate na sessão. */
 export type CombatOutcome = "victory" | "defeat" | "fled";
 
+/** Contexto da tela de exploração (somente leitura, para a UI desenhar). */
+export interface ExploreContext {
+  player: Player;
+  region: Region;
+  gold: number;
+}
+
+/** Visão do inimigo em combate (somente leitura, para a UI desenhar). */
+export interface CombatEnemyView {
+  id: string;
+  name: string;
+  level: number;
+  hp: number;
+  maxHp: number;
+}
+
+/** Contexto da tela de combate (somente leitura, para a UI desenhar). */
+export interface CombatContext {
+  player: Player;
+  enemy: CombatEnemyView;
+  isBoss: boolean;
+}
+
+/** Contexto das telas de fim de jogo (vitória/derrota). */
+export interface EndContext {
+  state: GameState;
+  /** Nome localizado do chefe derrotado (apenas na vitória). */
+  bossName?: string;
+}
+
 /**
  * Porta de entrada/saída do jogo. A camada de UI (ou um script de
  * teste) implementa esta interface; a orquestração não toca em I/O
@@ -51,8 +80,12 @@ export interface GameIO {
   askName(): Promise<string>;
   chooseClass(classes: readonly CharacterClass[]): Promise<CharacterClass>;
   chooseLanguage(current: Language): Promise<Language>;
-  exploreAction(): Promise<ExploreAction>;
-  combatAction(skills: readonly CombatSkillOption[]): Promise<CombatChoice>;
+  exploreAction(context: ExploreContext): Promise<ExploreAction>;
+  combatAction(context: CombatContext, skills: readonly CombatSkillOption[]): Promise<CombatChoice>;
+  /** Tela dedicada de vitória (chefe). Opcional: a UI pode implementá-la. */
+  victory?(context: EndContext): void | Promise<void>;
+  /** Tela dedicada de fim de jogo (derrota). Opcional. */
+  gameOver?(context: EndContext): void | Promise<void>;
 }
 
 /** Opções de execução do jogo (storage de save e fonte de aleatoriedade). */
@@ -91,6 +124,7 @@ async function resolveCombat(
   io: GameIO,
   state: GameState,
   enemy: Enemy,
+  isBoss: boolean,
   rng?: Rng,
 ): Promise<{ state: GameState; outcome: CombatOutcome }> {
   const combat = new CombatEngine(state.player, enemy);
@@ -99,13 +133,24 @@ async function resolveCombat(
     AVAILABLE_CLASSES.find((c) => c.id === state.player.classId)?.getStartingSkills() ?? [];
 
   const enemyName = localizedName(enemy.id);
+  // maxHp do inimigo = hp do template original (a engine opera sobre cópias).
+  const enemyMaxHp = enemy.hp;
   await io.render(t("combat.appeared", { name: enemyName }));
 
   while (!combat.isOver()) {
-    await io.render(
-      `${renderHUD(combat.getPlayer())}\n${t("combat.enemyHp", { name: enemyName, hp: combat.getEnemy().hp })}`,
-    );
+    const context: CombatContext = {
+      player: combat.getPlayer(),
+      enemy: {
+        id: enemy.id,
+        name: enemyName,
+        level: enemy.level,
+        hp: combat.getEnemy().hp,
+        maxHp: enemyMaxHp,
+      },
+      isBoss,
+    };
     const choice = await io.combatAction(
+      context,
       skills.map((skill) => ({ skill, cooldown: combat.getSkillCooldown(skill.id) })),
     );
 
@@ -165,8 +210,11 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
   let state = initial;
 
   while (true) {
-    await io.render(renderHUD(state.player));
-    const action = await io.exploreAction();
+    const action = await io.exploreAction({
+      player: state.player,
+      region: state.currentRegion,
+      gold: state.inventory.gold,
+    });
 
     if (action === "menu") {
       return;
@@ -177,15 +225,17 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
       continue;
     }
     if (action === "boss") {
-      const boss = await resolveCombat(io, state, goblinKing, options.rng);
+      const boss = await resolveCombat(io, state, goblinKing, true, options.rng);
       state = boss.state;
       if (boss.outcome === "victory") {
         await io.render(t("game.bossDefeated", { boss: localizedName(goblinKing.id) }));
+        await io.victory?.({ state, bossName: localizedName(goblinKing.id) });
         await saveGame(state, options);
         return;
       }
       if (boss.outcome === "defeat") {
         await io.render(t("game.defeated"));
+        await io.gameOver?.({ state });
         return;
       }
       continue;
@@ -204,10 +254,11 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
     if (!enemy) {
       continue;
     }
-    const battle = await resolveCombat(io, state, enemy, options.rng);
+    const battle = await resolveCombat(io, state, enemy, false, options.rng);
     state = battle.state;
     if (battle.outcome === "defeat") {
       await io.render(t("game.defeated"));
+      await io.gameOver?.({ state });
       return;
     }
     await saveGame(state, options);

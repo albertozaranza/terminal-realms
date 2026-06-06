@@ -1,29 +1,54 @@
 /**
  * Terminal Realms — ponto de entrada.
  *
- * Provê a implementação real de GameIO (inquirer + console + ANSI art)
- * e executa o jogo. Toda a lógica de orquestração vive em game.ts.
- * Os textos da interface passam pelo i18n (t()).
+ * Provê a implementação real de GameIO usando um GameRenderer de tela
+ * cheia (inquirer para entrada + ANSI art). A interface é redesenhada a
+ * cada mudança de estado, em vez de acumular linhas: a cena atual e um
+ * painel de histórico são compostos pelo renderer; a UI nunca escreve
+ * diretamente no terminal. Toda a orquestração vive em game.ts e os
+ * textos passam pelo i18n (t()).
  */
 import inquirer from "inquirer";
 import {
   type CombatChoice,
+  type CombatContext,
   type CombatSkillOption,
+  type EndContext,
   type ExploreAction,
+  type ExploreContext,
   type GameIO,
   runGame,
 } from "./game";
 import type { CharacterClass } from "./types";
-import { renderLogo } from "./ui";
+import {
+  GameRenderer,
+  renderClassGallery,
+  renderCombatScreen,
+  renderCreationIntro,
+  renderExploreScreen,
+  renderGameOverScreen,
+  renderLanguageScreen,
+  renderMenuScreen,
+  renderVictoryScreen,
+} from "./ui";
 import { type Language, SUPPORTED_LANGUAGES, t } from "./utils";
+
+const renderer = new GameRenderer();
+
+/** Aguarda o jogador pressionar Enter (telas terminais). */
+async function pressEnter(): Promise<void> {
+  await inquirer.prompt([{ type: "input", name: "_", message: t("prompt.continue") }]);
+}
 
 const cliIO: GameIO = {
   render: (text) => {
-    console.log(text);
+    renderer.pushLog(text);
+    renderer.paint();
   },
 
   mainMenu: async () => {
-    console.log(renderLogo());
+    renderer.resetLog();
+    renderer.paint(renderMenuScreen(renderer.width));
     const { action } = await inquirer.prompt<{
       action: "new" | "continue" | "language" | "exit";
     }>([
@@ -43,6 +68,7 @@ const cliIO: GameIO = {
   },
 
   askName: async () => {
+    renderer.paint(renderCreationIntro(renderer.width));
     const { name } = await inquirer.prompt<{ name: string }>([
       {
         type: "input",
@@ -55,6 +81,7 @@ const cliIO: GameIO = {
   },
 
   chooseClass: async (classes: readonly CharacterClass[]) => {
+    renderer.paint(renderClassGallery(classes, renderer.width));
     const { id } = await inquirer.prompt<{ id: string }>([
       {
         type: "list",
@@ -67,6 +94,7 @@ const cliIO: GameIO = {
   },
 
   chooseLanguage: async (current: Language) => {
+    renderer.paint(renderLanguageScreen(renderer.width));
     const { language } = await inquirer.prompt<{ language: Language }>([
       {
         type: "list",
@@ -79,7 +107,8 @@ const cliIO: GameIO = {
     return language;
   },
 
-  exploreAction: async () => {
+  exploreAction: async (context: ExploreContext) => {
+    renderer.paint(renderExploreScreen(context, renderer.width));
     const { action } = await inquirer.prompt<{ action: ExploreAction }>([
       {
         type: "list",
@@ -96,7 +125,8 @@ const cliIO: GameIO = {
     return action;
   },
 
-  combatAction: async (options: readonly CombatSkillOption[]) => {
+  combatAction: async (context: CombatContext, options: readonly CombatSkillOption[]) => {
+    renderer.paint(renderCombatScreen(context, renderer.width));
     const { action } = await inquirer.prompt<{ action: string }>([
       {
         type: "list",
@@ -119,6 +149,20 @@ const cliIO: GameIO = {
     const skillId = action.replace("skill:", "");
     const skill = options.find((o) => o.skill.id === skillId)?.skill;
     return skill ? { type: "skill", skill } : "attack";
+  },
+
+  victory: async (context: EndContext) => {
+    renderer.paintRaw(
+      renderVictoryScreen({ ...context, elapsed: renderer.elapsed() }, renderer.width),
+    );
+    await pressEnter();
+  },
+
+  gameOver: async (context: EndContext) => {
+    renderer.paintRaw(
+      renderGameOverScreen({ ...context, elapsed: renderer.elapsed() }, renderer.width),
+    );
+    await pressEnter();
   },
 };
 
