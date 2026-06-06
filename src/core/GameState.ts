@@ -60,13 +60,15 @@ export function createInventory(): Inventory {
 
 /**
  * Estados iniciais de descoberta da região. Regiões com grafo (FASE 16)
- * começam com o local de entrada **disponível** e os demais ocultos; a
- * revelação dos vizinhos é responsabilidade do sistema de descoberta.
+ * começam com o local de entrada **revelado** (`discovered`) e os demais
+ * ocultos. O estado de exibição (`available`/`locked`) é derivado pelo
+ * sistema de descoberta a partir dos requisitos; aqui guardamos só o estado
+ * persistido (`undiscovered` | `discovered` | `completed`).
  */
 export function createInitialLocationStates(region: Region): Record<string, LocationState> {
   const states: Record<string, LocationState> = {};
   if (region.entryLocationId) {
-    states[region.entryLocationId] = "available";
+    states[region.entryLocationId] = "discovered";
   }
   return states;
 }
