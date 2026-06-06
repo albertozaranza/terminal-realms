@@ -23,7 +23,7 @@ import {
   type ShopChoice,
   type ShopContext,
 } from "./game";
-import { isConsumable, isEquipment, sellPrice } from "./systems";
+import { isConsumable, isEquipment, meetsLevel, sellPrice } from "./systems";
 import type { CharacterClass, EquipmentSlot } from "./types";
 import {
   GameRenderer,
@@ -187,33 +187,80 @@ const cliIO: GameIO = {
   },
 
   shop: async (context: ShopContext): Promise<ShopChoice> => {
-    renderer.paint(renderShopScreen(context, renderer.width));
+    // Menu em dois níveis: primeiro escolhe Comprar/Vender/Sair, depois o
+    // item. Mantém compra e venda separadas e permite voltar sem sair.
+    while (true) {
+      renderer.paint(renderShopScreen(context, renderer.width));
+      const { action } = await inquirer.prompt<{ action: "buy" | "sell" | "close" }>([
+        {
+          type: "list",
+          name: "action",
+          message: t("shop.action"),
+          choices: [
+            { name: t("shop.buyMenu"), value: "buy" },
+            { name: t("shop.sellMenu"), value: "sell" },
+            { name: t("shop.close"), value: "close" },
+          ],
+        },
+      ]);
 
-    const buyChoices = context.offers.map((offer) => ({
-      name: t("shop.buy", { item: t(offer.item.name), price: offer.price }),
-      value: `buy:${offer.item.id}`,
-    }));
-    const sellChoices = context.sellable.map((slot) => ({
-      name: t("shop.sell", { item: t(slot.item.name), price: sellPrice(slot.item) }),
-      value: `sell:${slot.item.id}`,
-    }));
+      if (action === "close") {
+        return { type: "close" };
+      }
 
-    const { action } = await inquirer.prompt<{ action: string }>([
-      {
-        type: "list",
-        name: "action",
-        message: t("shop.action"),
-        choices: [...buyChoices, ...sellChoices, { name: t("shop.close"), value: "close" }],
-      },
-    ]);
+      if (action === "buy") {
+        renderer.paint(renderShopScreen(context, renderer.width));
+        // Ofertas bloqueadas (nível ou ouro) ficam esmaecidas no grayList.
+        const { choice } = await inquirer.prompt<{ choice: string }>([
+          {
+            type: "grayList",
+            name: "choice",
+            message: t("shop.buyMenu"),
+            choices: [
+              ...context.offers.map((offer) => ({
+                name: t("shop.itemLine", { item: t(offer.item.name), price: offer.price }),
+                value: `buy:${offer.item.id}`,
+                disabled: !meetsLevel(context.player, offer)
+                  ? t("shop.reqLevel", { level: offer.requiredLevel })
+                  : context.gold < offer.price
+                    ? t("shop.noGold")
+                    : false,
+              })),
+              { name: t("shop.back"), value: "back" },
+            ],
+          },
+        ]);
+        if (choice === "back") {
+          continue;
+        }
+        return { type: "buy", itemId: choice.slice("buy:".length) };
+      }
 
-    if (action.startsWith("buy:")) {
-      return { type: "buy", itemId: action.slice("buy:".length) };
+      // Vender.
+      renderer.paint(renderShopScreen(context, renderer.width));
+      const { choice } = await inquirer.prompt<{ choice: string }>([
+        {
+          type: "list",
+          name: "choice",
+          message: t("shop.sellMenu"),
+          choices: [
+            ...context.sellable.map((slot) => ({
+              name: t("shop.sellLine", {
+                item: t(slot.item.name),
+                quantity: slot.quantity,
+                price: sellPrice(slot.item),
+              }),
+              value: `sell:${slot.item.id}`,
+            })),
+            { name: t("shop.back"), value: "back" },
+          ],
+        },
+      ]);
+      if (choice === "back") {
+        continue;
+      }
+      return { type: "sell", itemId: choice.slice("sell:".length) };
     }
-    if (action.startsWith("sell:")) {
-      return { type: "sell", itemId: action.slice("sell:".length) };
-    }
-    return { type: "close" };
   },
 
   combatAction: async (context: CombatContext, options: readonly CombatSkillOption[]) => {
