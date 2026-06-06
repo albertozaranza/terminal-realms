@@ -1,11 +1,11 @@
 import { AVAILABLE_CLASSES } from "./classes";
 import {
-  camposIniciais,
   findEnemyById,
   findEventById,
   findItemById,
   findLootTable,
-  reiGoblin,
+  goblinKing,
+  startingFields,
 } from "./content";
 import {
   applyVictoryRewards,
@@ -159,7 +159,7 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
       continue;
     }
     if (action === "boss") {
-      const boss = await resolveCombat(io, state, reiGoblin, options.rng);
+      const boss = await resolveCombat(io, state, goblinKing, options.rng);
       state = boss.state;
       if (boss.outcome === "victory") {
         await io.render("Você derrotou o Rei Goblin! Fim da jornada inicial.");
@@ -222,7 +222,7 @@ export async function runGame(io: GameIO, options: RunGameOptions = {}): Promise
     const name = await io.askName();
     const characterClass = await io.chooseClass(AVAILABLE_CLASSES);
     const player = createCharacter({ name, characterClass });
-    await explore(io, createInitialGameState(player, camposIniciais), options);
+    await explore(io, createInitialGameState(player, startingFields), options);
   }
 
   await io.render("Até a próxima aventura!");

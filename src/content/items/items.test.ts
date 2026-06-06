@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isConsumable, isEquipment } from "../../systems";
 import type { Inventory } from "../../types";
-import { espadaEnferrujada, findItemById, ITEMS, pocaoPequena } from "./index";
+import { findItemById, ITEMS, rustySword, smallPotion } from "./index";
 
 const all = Object.values(ITEMS);
 
@@ -14,20 +14,20 @@ describe("estrutura de itens", () => {
   });
 
   it("identifica equipamentos e consumíveis", () => {
-    expect(isEquipment(espadaEnferrujada)).toBe(true);
-    expect(isConsumable(espadaEnferrujada)).toBe(false);
-    expect(isConsumable(pocaoPequena)).toBe(true);
-    expect(isEquipment(pocaoPequena)).toBe(false);
+    expect(isEquipment(rustySword)).toBe(true);
+    expect(isConsumable(rustySword)).toBe(false);
+    expect(isConsumable(smallPotion)).toBe(true);
+    expect(isEquipment(smallPotion)).toBe(false);
   });
 
   it("itens podem existir em um inventário", () => {
-    const inventory: Inventory = { items: [espadaEnferrujada, pocaoPequena], gold: 0 };
+    const inventory: Inventory = { items: [rustySword, smallPotion], gold: 0 };
     expect(inventory.items).toHaveLength(2);
-    expect(inventory.items).toContain(espadaEnferrujada);
+    expect(inventory.items).toContain(rustySword);
   });
 
   it("encontra um item pelo id", () => {
-    expect(findItemById("pocao_pequena")).toBe(pocaoPequena);
+    expect(findItemById("small_potion")).toBe(smallPotion);
     expect(findItemById("inexistente")).toBeUndefined();
   });
 });

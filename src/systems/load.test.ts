@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WarriorClass } from "../classes";
-import { camposIniciais } from "../content";
+import { startingFields } from "../content";
 import { createCharacter, createInitialGameState, type GameState } from "../core";
 import { deserializeGameState, loadGame, type SaveStorage, saveGame } from "./save";
 
@@ -23,7 +23,7 @@ function memoryStorage(): SaveStorage {
 
 function makeState(): GameState {
   const player = createCharacter({ name: "Hero", characterClass: new WarriorClass() });
-  const state = createInitialGameState(player, camposIniciais);
+  const state = createInitialGameState(player, startingFields);
   state.statistics.enemiesDefeated = 3;
   state.inventory.gold = 120;
   return state;

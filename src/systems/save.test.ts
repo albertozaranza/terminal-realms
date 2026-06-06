@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WarriorClass } from "../classes";
-import { camposIniciais } from "../content";
+import { startingFields } from "../content";
 import { createCharacter, createInitialGameState, type GameState } from "../core";
 import { hasSave, type SaveStorage, saveGame, serializeGameState } from "./save";
 
@@ -26,7 +26,7 @@ function memoryStorage(): { storage: SaveStorage; files: Map<string, string> } {
 
 function makeState(): GameState {
   const player = createCharacter({ name: "Hero", characterClass: new WarriorClass() });
-  return createInitialGameState(player, camposIniciais);
+  return createInitialGameState(player, startingFields);
 }
 
 describe("saveGame", () => {

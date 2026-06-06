@@ -1,11 +1,11 @@
 import type { Enemy } from "../../types";
-import { reiGoblin } from "./reiGoblin";
+import { goblinKing } from "./goblinKing";
 
-export { reiGoblin } from "./reiGoblin";
+export { goblinKing } from "./goblinKing";
 
 /** Registro de chefes por id. */
 export const BOSSES: Readonly<Record<string, Enemy>> = {
-  rei_goblin: reiGoblin,
+  goblin_king: goblinKing,
 };
 
 /** Busca um chefe pelo id. Retorna undefined se não existir. */

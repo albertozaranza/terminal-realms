@@ -2,24 +2,24 @@ import { describe, expect, it } from "vitest";
 import { WarriorClass } from "../../classes";
 import { CombatEngine, createCharacter } from "../../core";
 import { goblin } from "../enemies";
-import { camposIniciais } from "../regions";
-import { BOSSES, findBossById, reiGoblin } from "./index";
+import { startingFields } from "../regions";
+import { BOSSES, findBossById, goblinKing } from "./index";
 
 describe("Rei Goblin", () => {
   it("é o chefe da região inicial", () => {
-    expect(camposIniciais.bossId).toBe(reiGoblin.id);
-    expect(findBossById(camposIniciais.bossId)).toBe(reiGoblin);
+    expect(startingFields.bossId).toBe(goblinKing.id);
+    expect(findBossById(startingFields.bossId)).toBe(goblinKing);
   });
 
   it("é mais forte que um inimigo básico", () => {
-    expect(reiGoblin.hp).toBeGreaterThan(goblin.hp);
-    expect(reiGoblin.attack).toBeGreaterThan(goblin.attack);
-    expect(reiGoblin.experienceReward).toBeGreaterThan(goblin.experienceReward);
+    expect(goblinKing.hp).toBeGreaterThan(goblin.hp);
+    expect(goblinKing.attack).toBeGreaterThan(goblin.attack);
+    expect(goblinKing.experienceReward).toBeGreaterThan(goblin.experienceReward);
   });
 
   it("permite um combate funcional até a vitória", () => {
     const player = createCharacter({ name: "Hero", characterClass: new WarriorClass() });
-    const combat = new CombatEngine(player, reiGoblin);
+    const combat = new CombatEngine(player, goblinKing);
     combat.start();
 
     let guard = 0;
@@ -35,7 +35,7 @@ describe("Rei Goblin", () => {
 
     const result = combat.getResult();
     expect(result.status).toBe("victory");
-    expect(result.experienceReward).toBe(reiGoblin.experienceReward);
+    expect(result.experienceReward).toBe(goblinKing.experienceReward);
   });
 });
 
@@ -45,6 +45,6 @@ describe("BOSSES", () => {
   });
 
   it("contém o Rei Goblin", () => {
-    expect(BOSSES.rei_goblin).toBe(reiGoblin);
+    expect(BOSSES.goblin_king).toBe(goblinKing);
   });
 });

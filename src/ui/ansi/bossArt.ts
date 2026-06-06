@@ -1,6 +1,6 @@
 /** Arte ASCII de cada chefe, indexada pelo id do chefe. */
 const BOSS_ART: Readonly<Record<string, string>> = {
-  rei_goblin: [
+  goblin_king: [
     "    ,~~.    ",
     "   ( o o )  ",
     "  /   ^   \\ ",

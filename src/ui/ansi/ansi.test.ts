@@ -21,7 +21,7 @@ describe("renderClassArt", () => {
 
 describe("renderBossArt", () => {
   it("tem arte para o Rei Goblin", () => {
-    expect(renderBossArt("rei_goblin")).toContain("REI GOBLIN");
+    expect(renderBossArt("goblin_king")).toContain("REI GOBLIN");
   });
 
   it("lança erro para chefe sem arte", () => {

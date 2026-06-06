@@ -15,7 +15,7 @@ export const MAX_LEVEL = 50;
 export const SAVE_FILE = "save.json";
 
 /** Id da região inicial (Campos Iniciais). */
-export const START_REGION = "campos_iniciais";
+export const START_REGION = "starting_fields";
 
 /** Dano mínimo aplicado em qualquer ataque (ARCHITECTURE — fórmula de dano). */
 export const MIN_DAMAGE = 1;

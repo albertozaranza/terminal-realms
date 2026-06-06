@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { WarriorClass } from "../../classes";
 import { createCharacter, createInitialGameState, type GameState } from "../../core";
 import { findItemById } from "../items";
-import { camposIniciais } from "../regions";
+import { startingFields } from "../regions";
 import { EVENT_IDS, findEventById } from "./index";
 
 function makeState(): GameState {
   const player = createCharacter({ name: "Hero", characterClass: new WarriorClass() });
-  return createInitialGameState(player, camposIniciais);
+  return createInitialGameState(player, startingFields);
 }
 
 describe("eventos aleatórios", () => {

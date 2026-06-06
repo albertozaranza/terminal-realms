@@ -7,6 +7,6 @@ export const chest: GameEvent = {
   execute: () => ({
     message: "Você encontrou um baú escondido com ouro e uma poção!",
     goldChange: 25,
-    itemId: "pocao_pequena",
+    itemId: "small_potion",
   }),
 };

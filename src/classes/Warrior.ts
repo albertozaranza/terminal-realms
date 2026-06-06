@@ -1,7 +1,7 @@
 import type { CharacterClass, Skill, Stats } from "../types";
 
-const golpePoderoso: Skill = {
-  id: "golpe_poderoso",
+const powerfulStrike: Skill = {
+  id: "powerful_strike",
   name: "Golpe Poderoso",
   description: "Causa 150% do dano em um alvo. Cooldown de 3 turnos.",
   manaCost: 0,
@@ -13,8 +13,8 @@ const golpePoderoso: Skill = {
   }),
 };
 
-const posturaDefensiva: Skill = {
-  id: "postura_defensiva",
+const defensiveStance: Skill = {
+  id: "defensive_stance",
   name: "Postura Defensiva",
   description: "Aumenta a defesa em 50% por 2 turnos. Cooldown de 5 turnos.",
   manaCost: 0,
@@ -46,6 +46,6 @@ export class WarriorClass implements CharacterClass {
   }
 
   getStartingSkills(): Skill[] {
-    return [golpePoderoso, posturaDefensiva];
+    return [powerfulStrike, defensiveStance];
   }
 }

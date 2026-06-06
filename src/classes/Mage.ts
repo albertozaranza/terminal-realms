@@ -1,7 +1,7 @@
 import type { CharacterClass, Skill, Stats } from "../types";
 
-const bolaDeFogo: Skill = {
-  id: "bola_de_fogo",
+const fireball: Skill = {
+  id: "fireball",
   name: "Bola de Fogo",
   description: "Causa dano mágico em área. Cooldown de 3 turnos.",
   manaCost: 15,
@@ -13,8 +13,8 @@ const bolaDeFogo: Skill = {
   }),
 };
 
-const raioArcano: Skill = {
-  id: "raio_arcano",
+const arcaneBolt: Skill = {
+  id: "arcane_bolt",
   name: "Raio Arcano",
   description: "Causa dano mágico elevado em um único alvo. Cooldown de 2 turnos.",
   manaCost: 10,
@@ -26,8 +26,8 @@ const raioArcano: Skill = {
   }),
 };
 
-const escudoArcano: Skill = {
-  id: "escudo_arcano",
+const arcaneShield: Skill = {
+  id: "arcane_shield",
   name: "Escudo Arcano",
   description: "Reduz temporariamente o dano recebido. Cooldown de 4 turnos.",
   manaCost: 12,
@@ -59,6 +59,6 @@ export class MageClass implements CharacterClass {
   }
 
   getStartingSkills(): Skill[] {
-    return [bolaDeFogo, raioArcano, escudoArcano];
+    return [fireball, arcaneBolt, arcaneShield];
   }
 }

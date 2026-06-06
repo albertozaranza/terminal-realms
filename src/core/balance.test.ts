@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { ArcherClass, MageClass, WarriorClass } from "../classes";
-import { goblin, reiGoblin } from "../content";
+import { goblin, goblinKing } from "../content";
 import type { CharacterClass, Enemy, Player } from "../types";
 import { CombatEngine } from "./CombatEngine";
 import { createCharacter } from "./createCharacter";
 import { grantExperience, xpToNextLevel } from "./experience";
 
 const goblinLike = (): Enemy => goblin;
-const reiGoblinLike = (): Enemy => reiGoblin;
+const goblinKingLike = (): Enemy => goblinKing;
 
 const classes: CharacterClass[] = [new WarriorClass(), new ArcherClass(), new MageClass()];
 
@@ -43,7 +43,7 @@ describe("balanceamento — combate inicial", () => {
     const vsGoblin = autoBattle(player, goblinLike());
     const vsBoss = autoBattle(
       createCharacter({ name: "Hero", characterClass: new WarriorClass() }),
-      reiGoblinLike(),
+      goblinKingLike(),
     );
     expect(vsBoss.rounds).toBeGreaterThan(vsGoblin.rounds);
   });
@@ -62,6 +62,6 @@ describe("balanceamento — progressão de XP", () => {
       createCharacter({ name: "Mage", characterClass: new MageClass() }),
       50_000,
     ).player;
-    expect(autoBattle(leveled, reiGoblinLike()).winner).toBe("player");
+    expect(autoBattle(leveled, goblinKingLike()).winner).toBe("player");
   });
 });

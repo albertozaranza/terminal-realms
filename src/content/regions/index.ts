@@ -1,18 +1,18 @@
 import type { Region } from "../../types";
-import { camposIniciais } from "./camposIniciais";
+import { startingFields } from "./startingFields";
 
-export { camposIniciais } from "./camposIniciais";
+export { startingFields } from "./startingFields";
 
 /** Registro de regiões por id. */
 export const REGIONS: Readonly<Record<string, Region>> = {
-  campos_iniciais: camposIniciais,
+  starting_fields: startingFields,
 };
 
 /**
  * Ordem oficial de progressão entre regiões. No MVP há apenas a região
  * inicial; novas regiões (Floresta Sombria, etc.) entram em T038.
  */
-export const REGION_ORDER: readonly string[] = ["campos_iniciais"];
+export const REGION_ORDER: readonly string[] = ["starting_fields"];
 
 /** Busca uma região pelo id. Retorna undefined se não existir. */
 export function findRegionById(id: string): Region | undefined {

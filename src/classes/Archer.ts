@@ -1,7 +1,7 @@
 import type { CharacterClass, Skill, Stats } from "../types";
 
-const disparoPreciso: Skill = {
-  id: "disparo_preciso",
+const preciseShot: Skill = {
+  id: "precise_shot",
   name: "Disparo Preciso",
   description: "Causa 200% do dano com chance crítica aumentada. Cooldown de 4 turnos.",
   manaCost: 10,
@@ -13,8 +13,8 @@ const disparoPreciso: Skill = {
   }),
 };
 
-const chuvaDeFlechas: Skill = {
-  id: "chuva_de_flechas",
+const arrowRain: Skill = {
+  id: "arrow_rain",
   name: "Chuva de Flechas",
   description: "Causa dano a todos os inimigos. Cooldown de 6 turnos.",
   manaCost: 15,
@@ -46,6 +46,6 @@ export class ArcherClass implements CharacterClass {
   }
 
   getStartingSkills(): Skill[] {
-    return [disparoPreciso, chuvaDeFlechas];
+    return [preciseShot, arrowRain];
   }
 }

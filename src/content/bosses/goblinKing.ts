@@ -7,13 +7,13 @@ import type { Enemy } from "../../types";
  * Grito de Guerra) e loot garantido serão acopladas nas fases de loot e
  * polimento.
  */
-export const reiGoblin: Enemy = {
-  id: "rei_goblin",
+export const goblinKing: Enemy = {
+  id: "goblin_king",
   name: "Rei Goblin",
   level: 5,
   hp: 120,
   attack: 14,
   defense: 6,
   experienceReward: 200,
-  lootTableId: "rei_goblin",
+  lootTableId: "goblin_king",
 };

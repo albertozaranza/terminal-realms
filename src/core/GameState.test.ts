@@ -21,12 +21,12 @@ const player: Player = {
 };
 
 const region: Region = {
-  id: "campos_iniciais",
+  id: "starting_fields",
   name: "Campos Iniciais",
   minLevel: 1,
   maxLevel: 5,
   enemyPool: ["goblin", "lobo"],
-  bossId: "rei_goblin",
+  bossId: "goblin_king",
 };
 
 describe("createStatistics", () => {

@@ -1,8 +1,8 @@
 import type { Consumable } from "../../types";
 
 /** Poção Pequena — recupera 25 HP (CONTENT_BIBLE). */
-export const pocaoPequena: Consumable = {
-  id: "pocao_pequena",
+export const smallPotion: Consumable = {
+  id: "small_potion",
   name: "Poção Pequena",
   description: "Recupera 25 de HP.",
   rarity: "common",
@@ -11,8 +11,8 @@ export const pocaoPequena: Consumable = {
 };
 
 /** Poção Média — recupera 75 HP (CONTENT_BIBLE). */
-export const pocaoMedia: Consumable = {
-  id: "pocao_media",
+export const mediumPotion: Consumable = {
+  id: "medium_potion",
   name: "Poção Média",
   description: "Recupera 75 de HP.",
   rarity: "uncommon",
@@ -21,8 +21,8 @@ export const pocaoMedia: Consumable = {
 };
 
 /** Poção Grande — recupera 150 HP (CONTENT_BIBLE). */
-export const pocaoGrande: Consumable = {
-  id: "pocao_grande",
+export const largePotion: Consumable = {
+  id: "large_potion",
   name: "Poção Grande",
   description: "Recupera 150 de HP.",
   rarity: "rare",
@@ -31,8 +31,8 @@ export const pocaoGrande: Consumable = {
 };
 
 /** Poção de Mana — recupera 50 de Mana (CONTENT_BIBLE). */
-export const pocaoMana: Consumable = {
-  id: "pocao_mana",
+export const manaPotion: Consumable = {
+  id: "mana_potion",
   name: "Poção de Mana",
   description: "Recupera 50 de Mana.",
   rarity: "uncommon",

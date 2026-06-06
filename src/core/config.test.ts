@@ -11,7 +11,7 @@ describe("config", () => {
   });
 
   it("inicia na região Campos Iniciais", () => {
-    expect(START_REGION).toBe("campos_iniciais");
+    expect(START_REGION).toBe("starting_fields");
   });
 
   it("garante dano mínimo de 1", () => {
