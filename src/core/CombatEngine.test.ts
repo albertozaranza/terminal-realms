@@ -182,3 +182,32 @@ describe("CombatEngine — habilidades e cooldowns", () => {
     expect(combat.getPlayer().mana).toBe(50 - disparoPreciso.manaCost);
   });
 });
+
+describe("CombatEngine — vitória e derrota", () => {
+  it("retorna vitória com recompensa de XP", () => {
+    const combat = new CombatEngine(
+      makePlayer(),
+      makeEnemy({ hp: 1, defense: 0, experienceReward: 20 }),
+    );
+    combat.start();
+    combat.playerAttack();
+    const result = combat.getResult();
+    expect(result.status).toBe("victory");
+    expect(result.experienceReward).toBe(20);
+  });
+
+  it("retorna derrota sem recompensa", () => {
+    const combat = new CombatEngine(makePlayer({ hp: 1, defense: 0 }), makeEnemy({ attack: 999 }));
+    combat.start();
+    combat.enemyAttack();
+    const result = combat.getResult();
+    expect(result.status).toBe("defeat");
+    expect(result.experienceReward).toBe(0);
+  });
+
+  it("lança erro ao obter resultado com combate em andamento", () => {
+    const combat = new CombatEngine(makePlayer(), makeEnemy());
+    combat.start();
+    expect(() => combat.getResult()).toThrow();
+  });
+});

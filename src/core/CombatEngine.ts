@@ -19,6 +19,13 @@ export interface SkillUseOutcome {
   manaSpent: number;
 }
 
+/** Resultado final do combate. */
+export interface CombatResult {
+  status: "victory" | "defeat";
+  /** XP concedido ao jogador (0 em derrota). */
+  experienceReward: number;
+}
+
 /**
  * Engine de combate por turnos entre o jogador e um inimigo.
  *
@@ -175,6 +182,20 @@ export class CombatEngine {
   /** Indica se o combate terminou (vitória ou derrota). */
   isOver(): boolean {
     return this.status !== "ongoing";
+  }
+
+  /**
+   * Resultado final do combate. Só pode ser obtido após o término.
+   * Recompensas de gold e loot são adicionadas na Fase 5 (loot).
+   */
+  getResult(): CombatResult {
+    if (!this.isOver()) {
+      throw new Error("CombatEngine: o combate ainda está em andamento.");
+    }
+    if (this.status === "victory") {
+      return { status: "victory", experienceReward: this.enemy.experienceReward };
+    }
+    return { status: "defeat", experienceReward: 0 };
   }
 
   getPlayer(): Player {
