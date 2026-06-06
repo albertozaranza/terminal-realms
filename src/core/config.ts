@@ -22,3 +22,12 @@ export const MIN_DAMAGE = 1;
 
 /** Moeda oficial do jogo (CONTENT_BIBLE). */
 export const CURRENCY = "Gold";
+
+/**
+ * Ouro concedido ao vencer um combate, como fração da recompensa de XP do
+ * inimigo (sorteado entre mín e máx). Atrela o ganho de ouro à dificuldade:
+ * inimigos fracos rendem pouco, chefes rendem muito. Antes era um valor fixo
+ * (5–100) que inflacionava a economia (ver balanceamento da FASE 14).
+ */
+export const GOLD_REWARD_MIN_FACTOR = 0.5;
+export const GOLD_REWARD_MAX_FACTOR = 1.0;

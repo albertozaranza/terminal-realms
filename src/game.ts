@@ -15,6 +15,8 @@ import {
   createCharacter,
   createInitialGameState,
   type GameState,
+  GOLD_REWARD_MAX_FACTOR,
+  GOLD_REWARD_MIN_FACTOR,
 } from "./core";
 import {
   addItem,
@@ -192,10 +194,16 @@ function rewardVictory(
       loot.push(item);
     }
   }
+  // Ouro proporcional à dificuldade do inimigo (fração da recompensa de XP).
+  const goldReward = randomInt(
+    Math.round(experienceReward * GOLD_REWARD_MIN_FACTOR),
+    Math.round(experienceReward * GOLD_REWARD_MAX_FACTOR),
+    rng,
+  );
   const { state: next, leveledUp } = applyVictoryRewards(state, {
     experience: experienceReward,
     loot,
-    gold: randomInt(5, 100, rng),
+    gold: goldReward,
   });
   return { state: next, leveledUp };
 }
