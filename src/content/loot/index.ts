@@ -19,6 +19,10 @@ export const LOOT_TABLES: Readonly<Record<string, LootTable>> = {
     { itemId: "oak_staff", weight: 30 },
   ],
   goblin_king: [{ itemId: "large_potion", weight: 100 }],
+  forest_necromancer: [
+    { itemId: "large_potion", weight: 60 },
+    { itemId: "oak_staff", weight: 40 },
+  ],
 };
 
 /** Busca uma tabela de loot pelo id. Retorna undefined se não existir. */
