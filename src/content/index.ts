@@ -2,4 +2,5 @@
 export * from "./bosses";
 export * from "./enemies";
 export * from "./items";
+export * from "./loot";
 export * from "./regions";

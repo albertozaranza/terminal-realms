@@ -2,3 +2,4 @@
 export * from "./equipment";
 export * from "./inventory";
 export * from "./itemGuards";
+export * from "./loot";

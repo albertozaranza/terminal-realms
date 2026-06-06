@@ -8,6 +8,7 @@ export type { Equipment } from "./Equipment";
 export type { Inventory } from "./Inventory";
 export type { EquipmentSlot, Item, Rarity } from "./Item";
 export type { Loadout } from "./Loadout";
+export type { LootEntry, LootTable } from "./Loot";
 export type { Player } from "./Player";
 export type { Quest, QuestStatus } from "./Quest";
 export type { Region } from "./Region";
