@@ -6,3 +6,4 @@ export * from "./itemGuards";
 export * from "./loot";
 export * from "./region";
 export * from "./save";
+export * from "./shop";

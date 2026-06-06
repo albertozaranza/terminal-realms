@@ -5,3 +5,4 @@ export * from "./events";
 export * from "./items";
 export * from "./loot";
 export * from "./regions";
+export * from "./shops";

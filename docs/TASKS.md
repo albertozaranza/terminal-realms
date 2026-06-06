@@ -27,7 +27,7 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 | 11 — Refinamentos Técnicos | T039–T042 | 🗄️ Backlog |
 | 12 — Roadmap Futuro | T043–T049 | 🗄️ Backlog |
 | 13 — Overhaul de UI (TUI) | T050 | ✅ Concluída |
-| 14 — Economia, Itens e Equipamento | T051–T056 | 🚧 Em andamento |
+| 14 — Economia, Itens e Equipamento | T051–T056 | ✅ Concluída |
 | 15 — Progressão & Diversidade | T057–T059 | 🗄️ Backlog |
 
 O histórico detalhado de conclusão e as decisões técnicas ficam em [PROGRESS.md](PROGRESS.md).
@@ -772,7 +772,7 @@ ANSI art, menus e feedback visual.
 
 ---
 
-# FASE 14 — ECONOMIA, ITENS E EQUIPAMENTO — 🚧 EM ANDAMENTO
+# FASE 14 — ECONOMIA, ITENS E EQUIPAMENTO — ✅ CONCLUÍDA
 
 Objetivo: dar utilidade ao ouro e ao inventário — corrigir a contagem de
 drops, exibir e usar itens, equipar equipamento e abrir uma loja onde o ouro

@@ -12,6 +12,7 @@ export type { LootEntry, LootTable } from "./Loot";
 export type { Player } from "./Player";
 export type { Quest, QuestStatus } from "./Quest";
 export type { Region } from "./Region";
+export type { ShopOffer } from "./Shop";
 export type { Skill, SkillResult } from "./Skill";
 export type { Statistics } from "./Statistics";
 export type { StatKey, StatModifier } from "./StatModifier";

@@ -20,8 +20,10 @@ import {
   type InventoryChoice,
   type InventoryContext,
   runGame,
+  type ShopChoice,
+  type ShopContext,
 } from "./game";
-import { isConsumable, isEquipment } from "./systems";
+import { isConsumable, isEquipment, sellPrice } from "./systems";
 import type { CharacterClass, EquipmentSlot } from "./types";
 import {
   GameRenderer,
@@ -34,6 +36,7 @@ import {
   renderInventoryScreen,
   renderLanguageScreen,
   renderMenuScreen,
+  renderShopScreen,
   renderVictoryScreen,
 } from "./ui";
 import { type Language, SUPPORTED_LANGUAGES, t } from "./utils";
@@ -126,6 +129,7 @@ const cliIO: GameIO = {
           { name: t("explore.explore"), value: "explore" },
           { name: t("explore.boss", { boss: t("name.goblin_king") }), value: "boss" },
           { name: t("explore.inventory"), value: "inventory" },
+          { name: t("explore.shop"), value: "shop" },
           { name: t("explore.save"), value: "save" },
           { name: t("explore.menu"), value: "menu" },
         ],
@@ -178,6 +182,36 @@ const cliIO: GameIO = {
     }
     if (action.startsWith("unequip:")) {
       return { type: "unequip", slot: action.slice("unequip:".length) as EquipmentSlot };
+    }
+    return { type: "close" };
+  },
+
+  shop: async (context: ShopContext): Promise<ShopChoice> => {
+    renderer.paint(renderShopScreen(context, renderer.width));
+
+    const buyChoices = context.offers.map((offer) => ({
+      name: t("shop.buy", { item: t(offer.item.name), price: offer.price }),
+      value: `buy:${offer.item.id}`,
+    }));
+    const sellChoices = context.sellable.map((slot) => ({
+      name: t("shop.sell", { item: t(slot.item.name), price: sellPrice(slot.item) }),
+      value: `sell:${slot.item.id}`,
+    }));
+
+    const { action } = await inquirer.prompt<{ action: string }>([
+      {
+        type: "list",
+        name: "action",
+        message: t("shop.action"),
+        choices: [...buyChoices, ...sellChoices, { name: t("shop.close"), value: "close" }],
+      },
+    ]);
+
+    if (action.startsWith("buy:")) {
+      return { type: "buy", itemId: action.slice("buy:".length) };
+    }
+    if (action.startsWith("sell:")) {
+      return { type: "sell", itemId: action.slice("sell:".length) };
     }
     return { type: "close" };
   },

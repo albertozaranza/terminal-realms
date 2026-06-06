@@ -32,3 +32,14 @@ export const oakStaff: Equipment = {
   slot: "weapon",
   modifiers: [{ stat: "intelligence", value: 2 }],
 };
+
+/** Espada de Ferro — arma melhor vendida na loja (ATK +4). */
+export const ironSword: Equipment = {
+  id: "iron_sword",
+  name: "name.iron_sword",
+  description: "desc.iron_sword",
+  rarity: "uncommon",
+  value: 60,
+  slot: "weapon",
+  modifiers: [{ stat: "strength", value: 4 }],
+};

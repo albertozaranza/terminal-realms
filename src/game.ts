@@ -4,7 +4,9 @@ import {
   findEventById,
   findItemById,
   findLootTable,
+  GENERAL_SHOP,
   goblinKing,
+  MERCHANT_STOCK,
   startingFields,
 } from "./content";
 import {
@@ -15,15 +17,20 @@ import {
   type GameState,
 } from "./core";
 import {
+  addItem,
   applyLoadoutToPlayer,
+  buyOffer,
   equipFromInventory,
   hasSave,
   isConsumable,
   loadGame,
+  meetsLevel,
   removeItem,
   rollLoot,
   type SaveOptions,
   saveGame,
+  sellItem,
+  sellPrice,
   totalItems,
   unequipToInventory,
   useConsumable,
@@ -38,6 +45,7 @@ import type {
   Loadout,
   Player,
   Region,
+  ShopOffer,
   Skill,
 } from "./types";
 import { getLanguage, type Language, type Rng, randomInt, setLanguage, t } from "./utils";
@@ -48,7 +56,23 @@ function localizedName(id: string): string {
 }
 
 /** Ação escolhida no menu de exploração. */
-export type ExploreAction = "explore" | "boss" | "inventory" | "save" | "menu";
+export type ExploreAction = "explore" | "boss" | "inventory" | "shop" | "save" | "menu";
+
+/** Contexto da tela de loja (somente leitura, para a UI desenhar). */
+export interface ShopContext {
+  player: Player;
+  gold: number;
+  offers: readonly ShopOffer[];
+  sellable: readonly InventorySlot[];
+  /** Título da loja (loja fixa ou mercador). */
+  title: string;
+}
+
+/** Escolha do jogador na loja. */
+export type ShopChoice =
+  | { type: "buy"; itemId: string }
+  | { type: "sell"; itemId: string }
+  | { type: "close" };
 
 /** Contexto da tela de inventário (somente leitura, para a UI desenhar). */
 export interface InventoryContext {
@@ -137,6 +161,8 @@ export interface GameIO {
   combatAction(context: CombatContext, skills: readonly CombatSkillOption[]): Promise<CombatChoice>;
   /** Tela de inventário: equipar/desequipar itens ou fechar. */
   inventory(context: InventoryContext): Promise<InventoryChoice>;
+  /** Tela de loja: comprar/vender itens ou sair. */
+  shop(context: ShopContext): Promise<ShopChoice>;
   /** Tela dedicada de vitória (chefe). Opcional: a UI pode implementá-la. */
   victory?(context: EndContext): void | Promise<void>;
   /** Tela dedicada de fim de jogo (derrota). Opcional. */
@@ -338,6 +364,71 @@ async function manageInventory(
   return current;
 }
 
+/**
+ * Loop da loja: o jogador compra (com gate de nível e saldo) e vende itens
+ * (a venda desvaloriza) até sair. Persiste se houve alteração. Erros de
+ * regra (nível/saldo) viram mensagens, sem quebrar o jogo.
+ */
+async function runShop(
+  io: GameIO,
+  state: GameState,
+  offers: readonly ShopOffer[],
+  title: string,
+  options: RunGameOptions,
+): Promise<GameState> {
+  let current = state;
+  let changed = false;
+
+  while (true) {
+    const choice = await io.shop({
+      player: current.player,
+      gold: current.inventory.gold,
+      offers,
+      sellable: current.inventory.items,
+      title,
+    });
+    if (choice.type === "close") {
+      break;
+    }
+
+    if (choice.type === "buy") {
+      const offer = offers.find((entry) => entry.item.id === choice.itemId);
+      if (!offer) {
+        continue;
+      }
+      if (!meetsLevel(current.player, offer)) {
+        await io.render(
+          t("shop.levelLocked", { item: t(offer.item.name), level: offer.requiredLevel }),
+        );
+        continue;
+      }
+      if (current.inventory.gold < offer.price) {
+        await io.render(t("shop.cantAfford", { item: t(offer.item.name) }));
+        continue;
+      }
+      current = { ...current, inventory: buyOffer(current.inventory, current.player, offer) };
+      await io.render(t("shop.bought", { item: t(offer.item.name) }));
+      changed = true;
+      continue;
+    }
+
+    // Venda.
+    const slot = current.inventory.items.find((entry) => entry.item.id === choice.itemId);
+    if (!slot) {
+      continue;
+    }
+    const gain = sellPrice(slot.item);
+    current = { ...current, inventory: sellItem(current.inventory, choice.itemId) };
+    await io.render(t("shop.sold", { item: t(slot.item.name), gold: gain }));
+    changed = true;
+  }
+
+  if (changed) {
+    await saveGame(current, options);
+  }
+  return current;
+}
+
 /** Gera o próximo encontro da exploração. */
 function nextEncounter(
   state: GameState,
@@ -345,7 +436,9 @@ function nextEncounter(
 ): { kind: "enemy"; enemyId: string } | { kind: "event"; eventId: string } {
   const random = rng ?? Math.random;
   if (random() < EVENT_CHANCE) {
-    return { kind: "event", eventId: "chest" };
+    // Metade dos eventos é o mercador ambulante (loja com itens exclusivos).
+    const eventId = random() >= 0.5 ? "merchant" : "chest";
+    return { kind: "event", eventId };
   }
   const pool = state.currentRegion.enemyPool;
   const enemyId = pool[Math.floor(random() * pool.length)] ?? pool[0];
@@ -376,6 +469,10 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
       state = await manageInventory(io, state, options);
       continue;
     }
+    if (action === "shop") {
+      state = await runShop(io, state, GENERAL_SHOP, t("shop.title"), options);
+      continue;
+    }
     if (action === "boss") {
       const boss = await resolveCombat(io, state, goblinKing, true, options.rng);
       state = boss.state;
@@ -397,7 +494,24 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
     if (encounter.kind === "event") {
       const event = findEventById(encounter.eventId);
       if (event) {
-        await io.render(t(event.execute(state).message));
+        const result = event.execute(state);
+        await io.render(t(result.message));
+        // Aplica os efeitos do evento ao estado (ouro, item, loja).
+        if (result.goldChange) {
+          const gold = state.inventory.gold + result.goldChange;
+          const inventory = { ...state.inventory, gold: Math.max(0, gold) };
+          state = { ...state, inventory };
+        }
+        if (result.itemId) {
+          const item = findItemById(result.itemId);
+          if (item) {
+            state = { ...state, inventory: addItem(state.inventory, item) };
+          }
+        }
+        if (result.openShop) {
+          state = await runShop(io, state, MERCHANT_STOCK, t("shop.merchantTitle"), options);
+        }
+        await saveGame(state, options);
       }
       continue;
     }

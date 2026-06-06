@@ -43,6 +43,7 @@ function scriptIO(overrides: Partial<GameIO> = {}): { io: GameIO; outputs: strin
     exploreAction: async () => "boss",
     combatAction: async () => "attack",
     inventory: async () => ({ type: "close" }),
+    shop: async () => ({ type: "close" }),
     ...overrides,
   };
   return { io, outputs };
