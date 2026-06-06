@@ -1,6 +1,8 @@
 import { promises as fs } from "node:fs";
 import { type GameState, SAVE_FILE } from "../core";
+import type { Inventory, Item } from "../types";
 import { SUPPORTED_LANGUAGES, setLanguage, t } from "../utils";
+import { addItem } from "./inventory";
 
 /**
  * Abstração de armazenamento do save. Permite injetar um storage em
@@ -70,6 +72,31 @@ function isGameState(value: unknown): value is GameState {
   );
 }
 
+/**
+ * Normaliza o inventário desserializado para o formato de pilhas
+ * (`InventorySlot[]`). Saves antigos guardavam `items` como uma lista de
+ * itens "crus" (`Item[]`); estes são reagrupados via `addItem`, preservando
+ * o empilhamento de consumíveis. Saves já no formato novo passam intactos.
+ */
+function migrateInventory(raw: { items?: unknown; gold?: unknown }): Inventory {
+  const items = Array.isArray(raw.items) ? raw.items : [];
+  const gold = typeof raw.gold === "number" ? raw.gold : 0;
+
+  const alreadySlots = items.every(
+    (entry) =>
+      typeof entry === "object" && entry !== null && "item" in entry && "quantity" in entry,
+  );
+  if (alreadySlots) {
+    return { items: items as Inventory["items"], gold };
+  }
+
+  let inventory: Inventory = { items: [], gold };
+  for (const entry of items) {
+    inventory = addItem(inventory, entry as Item);
+  }
+  return inventory;
+}
+
 /** Desserializa um GameState a partir de JSON, validando a estrutura. */
 export function deserializeGameState(json: string): GameState {
   let parsed: unknown;
@@ -81,7 +108,10 @@ export function deserializeGameState(json: string): GameState {
   if (!isGameState(parsed)) {
     throw new Error(t("error.save.invalidStructure"));
   }
-  return parsed;
+  return {
+    ...parsed,
+    inventory: migrateInventory(parsed.inventory as { items?: unknown; gold?: unknown }),
+  };
 }
 
 /** Carrega o estado do jogo a partir do save. Lança erro se não existir. */

@@ -20,7 +20,7 @@ describe("applyVictoryRewards", () => {
     });
 
     expect(next.inventory.gold).toBe(30);
-    expect(next.inventory.items).toContain(rustySword);
+    expect(next.inventory.items.map((slot) => slot.item)).toContain(rustySword);
     expect(next.statistics.enemiesDefeated).toBe(1);
     expect(next.statistics.totalGoldEarned).toBe(30);
     expect(next.statistics.totalExperienceEarned).toBe(10);

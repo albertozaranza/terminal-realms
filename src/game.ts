@@ -14,7 +14,7 @@ import {
   createInitialGameState,
   type GameState,
 } from "./core";
-import { hasSave, loadGame, rollLoot, type SaveOptions, saveGame } from "./systems";
+import { hasSave, loadGame, rollLoot, type SaveOptions, saveGame, totalItems } from "./systems";
 import type { CharacterClass, Enemy, Item, Player, Region, Skill } from "./types";
 import { getLanguage, type Language, type Rng, randomInt, setLanguage, t } from "./utils";
 
@@ -223,7 +223,7 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
       player: state.player,
       region: state.currentRegion,
       gold: state.inventory.gold,
-      itemCount: state.inventory.items.length,
+      itemCount: totalItems(state.inventory),
     });
 
     if (action === "menu") {

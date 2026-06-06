@@ -54,4 +54,24 @@ describe("deserializeGameState", () => {
   it("throws for an invalid structure", () => {
     expect(() => deserializeGameState(JSON.stringify({ foo: 1 }))).toThrow();
   });
+
+  it("migrates a legacy inventory (bare Item[]) into stacks", () => {
+    const legacy = makeState() as unknown as Record<string, unknown>;
+    // Formato antigo: items era uma lista de itens crus, com duplicatas soltas.
+    legacy.inventory = {
+      gold: 50,
+      items: [
+        { id: "small_potion", name: "name.small_potion", rarity: "common", value: 10 },
+        { id: "small_potion", name: "name.small_potion", rarity: "common", value: 10 },
+        { id: "rusty_sword", name: "name.rusty_sword", rarity: "common", value: 15 },
+      ],
+    };
+
+    const migrated = deserializeGameState(JSON.stringify(legacy));
+    expect(migrated.inventory.gold).toBe(50);
+    // Duas poções viram uma pilha de quantidade 2; a arma fica em pilha própria.
+    expect(migrated.inventory.items).toHaveLength(2);
+    const potion = migrated.inventory.items.find((slot) => slot.item.id === "small_potion");
+    expect(potion?.quantity).toBe(2);
+  });
 });

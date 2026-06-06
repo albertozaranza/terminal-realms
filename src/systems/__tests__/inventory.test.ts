@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { Inventory, Item } from "../../types";
-import { addGold, addItem, countItem, hasItem, removeGold, removeItem } from "../inventory";
+import type { Equipment, Inventory, Item } from "../../types";
+import {
+  addGold,
+  addItem,
+  countItem,
+  hasItem,
+  removeGold,
+  removeItem,
+  totalItems,
+} from "../inventory";
 
 const sword: Item = {
   id: "sword",
@@ -15,6 +23,15 @@ const potion: Item = {
   description: "",
   rarity: "common",
   value: 5,
+};
+const helmet: Equipment = {
+  id: "helmet",
+  name: "Helmet",
+  description: "",
+  rarity: "common",
+  value: 20,
+  slot: "helmet",
+  modifiers: [{ stat: "defense", value: 1 }],
 };
 
 function empty(): Inventory {
@@ -48,6 +65,34 @@ describe("addItem / removeItem", () => {
     const inv = empty();
     addItem(inv, potion);
     expect(inv.items).toHaveLength(0);
+  });
+});
+
+describe("stacking", () => {
+  it("stacks consumables into a single slot", () => {
+    const inv = addItem(addItem(addItem(empty(), potion), potion), potion);
+    expect(inv.items).toHaveLength(1);
+    expect(inv.items[0].quantity).toBe(3);
+    expect(countItem(inv, "potion")).toBe(3);
+  });
+
+  it("decrements the stack when removing one unit", () => {
+    let inv = addItem(addItem(empty(), potion), potion);
+    inv = removeItem(inv, "potion");
+    expect(inv.items).toHaveLength(1);
+    expect(inv.items[0].quantity).toBe(1);
+  });
+
+  it("does not stack equipment (one slot per unit)", () => {
+    const inv = addItem(addItem(empty(), helmet), helmet);
+    expect(inv.items).toHaveLength(2);
+    expect(countItem(inv, "helmet")).toBe(2);
+  });
+
+  it("totalItems sums every stack", () => {
+    let inv = addItem(addItem(addItem(empty(), potion), potion), sword);
+    inv = addItem(inv, helmet);
+    expect(totalItems(inv)).toBe(4);
   });
 });
 

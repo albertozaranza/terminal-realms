@@ -21,9 +21,15 @@ describe("item structure", () => {
   });
 
   it("items can live in an inventory", () => {
-    const inventory: Inventory = { items: [rustySword, smallPotion], gold: 0 };
+    const inventory: Inventory = {
+      items: [
+        { item: rustySword, quantity: 1 },
+        { item: smallPotion, quantity: 1 },
+      ],
+      gold: 0,
+    };
     expect(inventory.items).toHaveLength(2);
-    expect(inventory.items).toContain(rustySword);
+    expect(inventory.items.map((slot) => slot.item)).toContain(rustySword);
   });
 
   it("finds an item by id", () => {

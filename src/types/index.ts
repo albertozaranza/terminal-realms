@@ -5,7 +5,7 @@ export type { Consumable, ConsumableEffect } from "./Consumable";
 export type { Enemy } from "./Enemy";
 export type { Entity } from "./Entity";
 export type { Equipment } from "./Equipment";
-export type { Inventory } from "./Inventory";
+export type { Inventory, InventorySlot } from "./Inventory";
 export type { EquipmentSlot, Item, Rarity } from "./Item";
 export type { Loadout } from "./Loadout";
 export type { LootEntry, LootTable } from "./Loot";
