@@ -1,8 +1,10 @@
 import type { Entity } from "./Entity";
-import type { Item } from "./Item";
 
 /**
  * Personagem controlado pelo jogador.
+ *
+ * O inventário NÃO vive aqui: o inventário canônico é `GameState.inventory`
+ * (ver T040/T051). Manter o inventário fora do Player evita estado duplicado.
  */
 export interface Player extends Entity {
   level: number;
@@ -22,6 +24,4 @@ export interface Player extends Entity {
   speed: number;
 
   classId: string;
-
-  inventory: Item[];
 }

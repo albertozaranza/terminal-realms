@@ -36,6 +36,5 @@ export function createCharacter({ name, characterClass }: CreateCharacterInput):
     defense: stats.defense,
     speed: stats.speed,
     classId: characterClass.id,
-    inventory: [],
   };
 }

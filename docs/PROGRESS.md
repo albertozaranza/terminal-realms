@@ -50,6 +50,7 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T037+ | Localização total de conteúdo | nomes/descrições de classes, inimigos, chefe, itens, skills, regiões e mensagens de skills/eventos agora são chaves i18n resolvidas via `t()` (pt-BR/en); HUD e menu legado também localizados. Conteúdo sem texto humano hardcoded. ASCII art (T028) permanece com rótulos embutidos e não é exibida no fluxo atual |
 | T038 | Padronização e isolamento dos testes | todas as descrições `describe`/`it` em inglês; cada teste movido para `__tests__/` no seu path; imports relativos ajustados |
 | T050 | Overhaul de UI (TUI) | `GameRenderer` (tela cheia, clear+redraw, log limitado); telas dedicadas (menu/criação/exploração/combate/vitória/game over); ANSI art de inimigos+chefe+classes+regiões; barras coloridas. Lógica de jogo intacta (ver D-05) |
+| T051 | Unificar inventário (conclui T040) | `GameState.inventory` é o inventário canônico; campo `Player.inventory` removido (era duplicado e nunca atualizado — causava drops não aparecerem no HUD). `ExploreContext`/`ExploreScreenView` passam `itemCount` derivado de `state.inventory.items.length` |
 
 ---
 

@@ -9,6 +9,8 @@ export interface ExploreScreenView {
   player: Player;
   region: Region;
   gold: number;
+  /** Quantidade de itens no inventário canônico (GameState.inventory). */
+  itemCount: number;
 }
 
 /**
@@ -16,7 +18,7 @@ export interface ExploreScreenView {
  * e um resumo de recursos (ouro e itens).
  */
 export function renderExploreScreen(view: ExploreScreenView, width: number): string {
-  const { player, region, gold } = view;
+  const { player, region, gold, itemCount } = view;
   const theme = regionTheme(region.id);
   const regionName = t(region.name);
 
@@ -36,7 +38,7 @@ export function renderExploreScreen(view: ExploreScreenView, width: number): str
 
   const resources = panel(
     `${chalk.yellow(`◈ ${t("explore.gold", { gold })}`)}     ${chalk.cyan(
-      `🎒 ${t("explore.items", { count: player.inventory.length })}`,
+      `🎒 ${t("explore.items", { count: itemCount })}`,
     )}`,
     { width, borderColor: "yellow" },
   );

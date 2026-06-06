@@ -17,7 +17,6 @@ const player: Player = {
   defense: 5,
   speed: 5,
   classId: "warrior",
-  inventory: [],
 };
 
 const region: Region = {

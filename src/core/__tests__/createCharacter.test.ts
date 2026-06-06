@@ -17,7 +17,6 @@ describe("createCharacter", () => {
     expect(player.hp).toBe(stats.maxHp);
     expect(player.mana).toBe(stats.maxMana);
     expect(player.maxMana).toBe(stats.maxMana);
-    expect(player.inventory).toEqual([]);
   });
 
   it("starts with full hp and mana", () => {

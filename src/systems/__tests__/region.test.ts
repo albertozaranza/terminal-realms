@@ -32,7 +32,6 @@ function player(level: number): Player {
     defense: 1,
     speed: 1,
     classId: "warrior",
-    inventory: [],
   };
 }
 

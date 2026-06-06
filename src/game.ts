@@ -44,6 +44,8 @@ export interface ExploreContext {
   player: Player;
   region: Region;
   gold: number;
+  /** Quantidade de itens no inventário canônico (GameState.inventory). */
+  itemCount: number;
 }
 
 /** Visão do inimigo em combate (somente leitura, para a UI desenhar). */
@@ -221,6 +223,7 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
       player: state.player,
       region: state.currentRegion,
       gold: state.inventory.gold,
+      itemCount: state.inventory.items.length,
     });
 
     if (action === "menu") {

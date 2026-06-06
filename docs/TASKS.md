@@ -27,6 +27,8 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 | 11 — Refinamentos Técnicos | T039–T042 | 🗄️ Backlog |
 | 12 — Roadmap Futuro | T043–T049 | 🗄️ Backlog |
 | 13 — Overhaul de UI (TUI) | T050 | ✅ Concluída |
+| 14 — Economia, Itens e Equipamento | T051–T056 | 🚧 Em andamento |
+| 15 — Progressão & Diversidade | T057–T059 | 🗄️ Backlog |
 
 O histórico detalhado de conclusão e as decisões técnicas ficam em [PROGRESS.md](PROGRESS.md).
 
@@ -660,11 +662,13 @@ Hoje `Skill.execute()` retorna efeito neutro. Aplicar dano/cura reais exige enri
 
 ---
 
-## T040
+## T040 — ✅ CONCLUÍDA (via T051)
 
 Unificar `Player.inventory` e `GameState.inventory`.
 
 Remover a redundância prevista no ARCHITECTURE, definindo um inventário canônico.
+
+Concluída na FASE 14: `GameState.inventory` é o canônico e `Player.inventory` foi removido.
 
 ---
 
@@ -765,6 +769,136 @@ ANSI art, menus e feedback visual.
 - A interface não cresce indefinidamente nem exige scroll.
 - O usuário enxerga apenas o estado atual do jogo.
 - Sem alterar a lógica de jogo; `tsc`, Biome, testes e build passam.
+
+---
+
+# FASE 14 — ECONOMIA, ITENS E EQUIPAMENTO — 🚧 EM ANDAMENTO
+
+Objetivo: dar utilidade ao ouro e ao inventário — corrigir a contagem de
+drops, exibir e usar itens, equipar equipamento e abrir uma loja onde o ouro
+é gasto. Decisões consolidadas no plano de desenvolvimento desta fase.
+
+Pré-requisito de leitura: CLAUDE.md, ARCHITECTURE.md, GDD.md, CONTENT_BIBLE.md.
+
+---
+
+## T051 - Unificar Inventário (conclui T040)
+
+### Objetivos
+
+- Eleger `GameState.inventory` como inventário canônico.
+- Remover o campo redundante `Player.inventory` (nunca atualizado).
+- HUD/telas passam a refletir a contagem e os itens reais.
+
+### Critérios de Aceite
+
+- Itens dropados em combate aparecem na contagem do HUD.
+- Nenhuma referência remanescente a `Player.inventory`.
+- T040 marcado como concluído.
+
+---
+
+## T052 - Itens Empilháveis
+
+### Objetivos
+
+- Agrupar itens iguais por quantidade (ex.: "Poção Pequena x3").
+- Stack vale para consumíveis; equipamento permanece instância individual.
+- Persistir o novo formato no save (migração/compatibilidade).
+
+### Critérios de Aceite
+
+- Adicionar item repetido incrementa a quantidade, não duplica entradas.
+- Save/load preservam quantidades.
+- `addItem`/`removeItem` e testes cobrem o novo contrato.
+
+---
+
+## T053 - Tela de Inventário (estilo Tibia)
+
+### Objetivos
+
+- Tela dedicada no **layout paper-doll do Tibia**: silhueta com slots de
+  equipamento posicionados ao redor do corpo (capacete, amuleto, mochila,
+  arma/mão, peito, anel, calças/botas) + grade da mochila com os itens, e o
+  ouro exibido na parte inferior.
+- Renderizar slots vazios e ocupados de forma distinta (ANSI/boxen).
+- Acessível a partir do menu de exploração.
+
+### Critérios de Aceite
+
+- Abrir a tela mostra o conteúdo real do inventário e os slots equipados.
+- O layout remete ao inventário do Tibia (slots ao redor + mochila + ouro).
+- Camada de UI sem lógica de jogo (apenas renderização + IO).
+
+---
+
+## T054 - Usar Consumíveis
+
+### Objetivos
+
+- `useConsumable(player, item)` puro aplicando `effect` (hp/mana), com clamp nos máximos.
+- Uso fora do combate (tela de inventário) e dentro do combate (nova ação "item", consome o turno).
+
+### Critérios de Aceite
+
+- Usar poção recupera HP/mana sem ultrapassar o máximo e consome a unidade.
+- A ação "item" aparece no menu de combate e gasta o turno.
+- Lógica testável sem interface.
+
+---
+
+## T055 - Equipar Equipamento
+
+### Objetivos
+
+- Adicionar `loadout` ao `GameState` e persistir no save.
+- Fluxo de equipar/desequipar a partir do inventário.
+- Somar `getStatBonus(loadout, ...)` nos cálculos de combate.
+
+### Critérios de Aceite
+
+- Equipar altera os atributos efetivos do jogador no combate.
+- Save/load preservam o loadout.
+- Sem código morto: o sistema de equipamento passa a ser usado de fato.
+
+---
+
+## T056 - Loja / Comerciante
+
+### Objetivos
+
+- `systems/shop.ts` puro: `buyItem` (valida saldo e requisito de nível) e `sellItem` (paga fração do `value`).
+- Estoque data-driven (`content/shops/`): loja fixa + itens exclusivos do merchant aleatório.
+- Opção "Loja" fixa no menu de exploração e ligação do evento `merchant` ao encontro aleatório.
+- `shopScreen.ts` + `GameIO.shop(...)`; i18n em en/ptBR.
+
+### Critérios de Aceite
+
+- Comprar reduz o ouro e adiciona o item; bloqueado abaixo do nível exigido.
+- Vender remove o item e credita fração do valor.
+- O merchant aleatório oferece itens exclusivos não vendidos na loja fixa.
+
+---
+
+# FASE 15 — PROGRESSÃO & DIVERSIDADE — 🗄️ BACKLOG (design antes de implementar)
+
+## T057
+
+Documento de design de progressão (`docs/PROGRESSAO.md`).
+
+Hoje há níveis até 50, mas inimigos só vão a Lv1 (comuns) e Lv5 (boss). Definir
+escalonamento (dinâmico por nível do jogador ou faixas por região), faixas
+intermediárias de inimigos, curva de XP/recompensa e integração com T047
+(novas regiões) e T048 (novos chefes). Não implementar antes do design aprovado.
+
+## T058
+
+Estoque rotativo da loja por região (depende de mais de uma região).
+
+## T059
+
+Mapa de regiões no menu principal/exploração.
 
 ---
 
