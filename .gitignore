@@ -2,6 +2,3 @@ node_modules/
 dist/
 *.log
 save.json
-
-# Plano de desenvolvimento temporário (não commitar; excluir ao fim da fase)
-docs/PLANO_GOLD_INVENTARIO.md
