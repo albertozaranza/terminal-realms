@@ -6,3 +6,4 @@ export * from "./damage";
 export * from "./experience";
 export * from "./GameEngine";
 export * from "./GameState";
+export * from "./WorldEngine";
