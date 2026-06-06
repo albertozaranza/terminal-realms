@@ -9,7 +9,7 @@ import type { Enemy } from "../../types";
  */
 export const goblinKing: Enemy = {
   id: "goblin_king",
-  name: "Rei Goblin",
+  name: "name.goblin_king",
   level: 5,
   hp: 120,
   attack: 14,

@@ -107,7 +107,7 @@ async function resolveCombat(
       const hit = combat.playerAttack();
       await io.render(t("combat.playerHit", { damage: hit.damage }));
     } else {
-      await io.render(combat.useSkill(choice.skill).result.message);
+      await io.render(t(combat.useSkill(choice.skill).result.message));
     }
 
     if (combat.isOver()) {
@@ -186,7 +186,7 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
     if (encounter.kind === "event") {
       const event = findEventById(encounter.eventId);
       if (event) {
-        await io.render(event.execute(state).message);
+        await io.render(t(event.execute(state).message));
       }
       continue;
     }

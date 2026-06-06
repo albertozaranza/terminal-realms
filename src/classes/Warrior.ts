@@ -2,27 +2,27 @@ import type { CharacterClass, Skill, Stats } from "../types";
 
 const powerfulStrike: Skill = {
   id: "powerful_strike",
-  name: "Golpe Poderoso",
-  description: "Causa 150% do dano em um alvo. Cooldown de 3 turnos.",
+  name: "name.powerful_strike",
+  description: "desc.powerful_strike",
   manaCost: 0,
   cooldown: 3,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Guerreiro desfere um Golpe Poderoso!",
+    message: "skillmsg.powerful_strike",
   }),
 };
 
 const defensiveStance: Skill = {
   id: "defensive_stance",
-  name: "Postura Defensiva",
-  description: "Aumenta a defesa em 50% por 2 turnos. Cooldown de 5 turnos.",
+  name: "name.defensive_stance",
+  description: "desc.defensive_stance",
   manaCost: 0,
   cooldown: 5,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Guerreiro assume uma Postura Defensiva!",
+    message: "skillmsg.defensive_stance",
   }),
 };
 
@@ -31,7 +31,7 @@ const defensiveStance: Skill = {
  */
 export class WarriorClass implements CharacterClass {
   readonly id = "warrior";
-  readonly name = "Guerreiro";
+  readonly name = "name.warrior";
 
   getStartingStats(): Stats {
     return {

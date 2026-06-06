@@ -29,7 +29,7 @@ describe("inimigos básicos", () => {
 
 describe("findEnemyById", () => {
   it("encontra um inimigo existente", () => {
-    expect(findEnemyById("goblin")?.name).toBe("Goblin");
+    expect(findEnemyById("goblin")?.id).toBe("goblin");
   });
 
   it("retorna undefined para id inexistente", () => {

@@ -3,7 +3,7 @@ import type { Enemy } from "../../types";
 /** Goblin — stats conforme CONTENT_BIBLE. */
 export const goblin: Enemy = {
   id: "goblin",
-  name: "Goblin",
+  name: "name.goblin",
   level: 1,
   hp: 25,
   attack: 5,

@@ -3,7 +3,7 @@ import type { Region } from "../../types";
 /** Campos Iniciais — primeira região do jogo (CONTENT_BIBLE). */
 export const startingFields: Region = {
   id: "starting_fields",
-  name: "Campos Iniciais",
+  name: "name.starting_fields",
   minLevel: 1,
   maxLevel: 5,
   enemyPool: ["goblin", "wolf", "skeleton", "orc"],

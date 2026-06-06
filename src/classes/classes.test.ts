@@ -46,7 +46,7 @@ describe("AVAILABLE_CLASSES", () => {
 
 describe("findClassById", () => {
   it("encontra uma classe existente", () => {
-    expect(findClassById("mage")?.name).toBe("Mago");
+    expect(findClassById("mage")?.id).toBe("mage");
   });
 
   it("retorna undefined para id inexistente", () => {

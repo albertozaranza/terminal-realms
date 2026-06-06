@@ -3,9 +3,9 @@ import type { GameEvent } from "../../core";
 /** Mercador ambulante — abre uma loja. */
 export const merchant: GameEvent = {
   id: "merchant",
-  title: "Mercador",
+  title: "event.merchant.title",
   execute: () => ({
-    message: "Um mercador ambulante surge na estrada e abre suas mercadorias.",
+    message: "event.merchant.message",
     openShop: true,
   }),
 };

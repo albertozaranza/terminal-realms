@@ -3,9 +3,9 @@ import type { GameEvent } from "../../core";
 /** Baú — concede ouro e um item. */
 export const chest: GameEvent = {
   id: "chest",
-  title: "Baú",
+  title: "event.chest.title",
   execute: () => ({
-    message: "Você encontrou um baú escondido com ouro e uma poção!",
+    message: "event.chest.message",
     goldChange: 25,
     itemId: "small_potion",
   }),

@@ -3,7 +3,7 @@ import type { Enemy } from "../../types";
 /** Lobo — stats conforme CONTENT_BIBLE. */
 export const wolf: Enemy = {
   id: "wolf",
-  name: "Lobo",
+  name: "name.wolf",
   level: 2,
   hp: 30,
   attack: 6,

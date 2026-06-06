@@ -2,27 +2,27 @@ import type { CharacterClass, Skill, Stats } from "../types";
 
 const preciseShot: Skill = {
   id: "precise_shot",
-  name: "Disparo Preciso",
-  description: "Causa 200% do dano com chance crítica aumentada. Cooldown de 4 turnos.",
+  name: "name.precise_shot",
+  description: "desc.precise_shot",
   manaCost: 10,
   cooldown: 4,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Arqueiro realiza um Disparo Preciso!",
+    message: "skillmsg.precise_shot",
   }),
 };
 
 const arrowRain: Skill = {
   id: "arrow_rain",
-  name: "Chuva de Flechas",
-  description: "Causa dano a todos os inimigos. Cooldown de 6 turnos.",
+  name: "name.arrow_rain",
+  description: "desc.arrow_rain",
   manaCost: 15,
   cooldown: 6,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Arqueiro dispara uma Chuva de Flechas!",
+    message: "skillmsg.arrow_rain",
   }),
 };
 
@@ -31,7 +31,7 @@ const arrowRain: Skill = {
  */
 export class ArcherClass implements CharacterClass {
   readonly id = "archer";
-  readonly name = "Arqueiro";
+  readonly name = "name.archer";
 
   getStartingStats(): Stats {
     return {

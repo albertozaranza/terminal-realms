@@ -2,40 +2,40 @@ import type { CharacterClass, Skill, Stats } from "../types";
 
 const fireball: Skill = {
   id: "fireball",
-  name: "Bola de Fogo",
-  description: "Causa dano mágico em área. Cooldown de 3 turnos.",
+  name: "name.fireball",
+  description: "desc.fireball",
   manaCost: 15,
   cooldown: 3,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Mago conjura uma Bola de Fogo!",
+    message: "skillmsg.fireball",
   }),
 };
 
 const arcaneBolt: Skill = {
   id: "arcane_bolt",
-  name: "Raio Arcano",
-  description: "Causa dano mágico elevado em um único alvo. Cooldown de 2 turnos.",
+  name: "name.arcane_bolt",
+  description: "desc.arcane_bolt",
   manaCost: 10,
   cooldown: 2,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Mago dispara um Raio Arcano!",
+    message: "skillmsg.arcane_bolt",
   }),
 };
 
 const arcaneShield: Skill = {
   id: "arcane_shield",
-  name: "Escudo Arcano",
-  description: "Reduz temporariamente o dano recebido. Cooldown de 4 turnos.",
+  name: "name.arcane_shield",
+  description: "desc.arcane_shield",
   manaCost: 12,
   cooldown: 4,
   execute: () => ({
     damage: 0,
     healing: 0,
-    message: "Mago ergue um Escudo Arcano!",
+    message: "skillmsg.arcane_shield",
   }),
 };
 
@@ -44,7 +44,7 @@ const arcaneShield: Skill = {
  */
 export class MageClass implements CharacterClass {
   readonly id = "mage";
-  readonly name = "Mago";
+  readonly name = "name.mage";
 
   getStartingStats(): Stats {
     return {

@@ -3,8 +3,8 @@ import type { Equipment } from "../../types";
 /** Espada Enferrujada — arma inicial do Guerreiro (CONTENT_BIBLE: ATK +2). */
 export const rustySword: Equipment = {
   id: "rusty_sword",
-  name: "Espada Enferrujada",
-  description: "Uma espada velha e desgastada. Melhor que punhos nus.",
+  name: "name.rusty_sword",
+  description: "desc.rusty_sword",
   rarity: "common",
   value: 15,
   slot: "weapon",
@@ -14,8 +14,8 @@ export const rustySword: Equipment = {
 /** Arco Simples — arma inicial do Arqueiro (CONTENT_BIBLE: ATK +2). */
 export const simpleBow: Equipment = {
   id: "simple_bow",
-  name: "Arco Simples",
-  description: "Um arco de madeira simples, mas confiável.",
+  name: "name.simple_bow",
+  description: "desc.simple_bow",
   rarity: "common",
   value: 15,
   slot: "weapon",
@@ -25,8 +25,8 @@ export const simpleBow: Equipment = {
 /** Cajado de Carvalho — arma inicial do Mago (CONTENT_BIBLE: INT +2). */
 export const oakStaff: Equipment = {
   id: "oak_staff",
-  name: "Cajado de Carvalho",
-  description: "Um cajado de carvalho que canaliza energia arcana.",
+  name: "name.oak_staff",
+  description: "desc.oak_staff",
   rarity: "common",
   value: 15,
   slot: "weapon",

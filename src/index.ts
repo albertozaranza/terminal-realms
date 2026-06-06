@@ -98,7 +98,7 @@ const cliIO: GameIO = {
         message: t("prompt.combatAction"),
         choices: [
           { name: t("combat.attack"), value: "attack" },
-          ...skills.map((skill) => ({ name: skill.name, value: `skill:${skill.id}` })),
+          ...skills.map((skill) => ({ name: t(skill.name), value: `skill:${skill.id}` })),
           { name: t("combat.flee"), value: "flee" },
         ],
       },

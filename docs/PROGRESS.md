@@ -46,7 +46,8 @@ Registro vivo do que já foi feito e das decisões técnicas tomadas.
 | T034 | Sistema de i18n (Translation) | motor em `utils/i18n.ts`; estado de idioma de módulo; `t()` com fallback |
 | T035 | Identificadores em inglês | renomeados consts/ids/arquivos pt-BR→en; `reiGoblin.ts`→`goblinKing.ts`, `camposIniciais.ts`→`startingFields.ts`; nomes exibidos serão localizados em T037 |
 | T036 | Erros e exceções via i18n | todos os `throw` usam `t()`; catálogos movidos para arquivos isolados em `utils/locales/` (a pedido do usuário); erros seguem o idioma atual |
-| T037 | Seleção de idioma pelo usuário | opção "Idioma" no menu; UI/mensagens via `t()`; `GameState.language` persistido e restaurado no load; nomes de inimigos/classes/chefe localizados. Flavor de skills e nomes de itens/regiões ficam para localização de conteúdo futura |
+| T037 | Seleção de idioma pelo usuário | opção "Idioma" no menu; UI/mensagens via `t()`; `GameState.language` persistido e restaurado no load |
+| T037+ | Localização total de conteúdo | nomes/descrições de classes, inimigos, chefe, itens, skills, regiões e mensagens de skills/eventos agora são chaves i18n resolvidas via `t()` (pt-BR/en). Conteúdo sem texto humano hardcoded. ASCII art (T028) permanece com rótulos embutidos e não é exibida no fluxo atual |
 
 ---
 
