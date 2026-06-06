@@ -1,3 +1,4 @@
 // Camada Utils — funções utilitárias puras (random, dice, math).
-// Conteúdo adicionado nas tarefas seguintes.
-export {};
+export * from "./dice";
+export * from "./math";
+export * from "./random";
