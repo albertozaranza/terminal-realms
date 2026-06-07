@@ -89,6 +89,7 @@ export type ExploreAction =
   | "explore"
   | "boss"
   | "travel"
+  | "hunt"
   | "map"
   | "journal"
   | "world"
@@ -995,6 +996,37 @@ async function visitLocation(
 }
 
 /**
+ * Busca um inimigo errante da região para grindar **sem precisar viajar**.
+ * Sorteia um inimigo do `enemyPool` da região, escala ao nível do jogador e
+ * resolve o combate. Encontros avulsos não concluem locais do grafo.
+ */
+async function huntEnemy(
+  io: GameIO,
+  initial: GameState,
+  options: RunGameOptions,
+): Promise<{ state: GameState; ended: boolean }> {
+  const state = initial;
+  const pool = state.currentRegion.enemyPool;
+  const random = options.rng ?? Math.random;
+  const enemyId = pool[Math.floor(random() * pool.length)] ?? pool[0];
+  const enemy = enemyId ? findEnemyById(enemyId) : undefined;
+  if (!enemy) {
+    await io.render(t("world.huntEmpty"));
+    return { state, ended: false };
+  }
+
+  await io.render(t("world.hunting"));
+  const battle = await resolveCombat(io, state, scaledEnemy(state, enemy), false, options.rng);
+  if (battle.outcome === "defeat") {
+    await io.render(t("game.defeated"));
+    await io.gameOver?.({ state: battle.state });
+    return { state: battle.state, ended: true };
+  }
+  await saveGame(battle.state, options);
+  return { state: battle.state, ended: false };
+}
+
+/**
  * Loop de exploração por **grafo de descoberta** (FASE 16): o jogador viaja
  * entre locais conhecidos, conversa, investiga e enfrenta o chefe.
  */
@@ -1040,6 +1072,14 @@ async function exploreGraph(
     }
     if (action === "world") {
       await io.worldMap?.(worldContext(state));
+      continue;
+    }
+    if (action === "hunt") {
+      const hunted = await huntEnemy(io, state, options);
+      state = hunted.state;
+      if (hunted.ended) {
+        return;
+      }
       continue;
     }
     if (action === "travel" && io.travel) {

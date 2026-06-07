@@ -139,6 +139,16 @@ describe("runGame — graph playthrough (Dark Woods)", () => {
     });
     await expect(runGame(io, options())).resolves.toBeUndefined();
   });
+
+  it("hunts a wandering enemy without traveling", async () => {
+    const { io, outputs } = scriptIO({
+      exploreAction: sequence(["hunt", "menu"] as const),
+      combatAction: smartCombat,
+    });
+    await runGame(io, options());
+    expect(outputs).toContain(t("world.hunting"));
+    expect(outputs).not.toContain(t("game.defeated"));
+  });
 });
 
 describe("runGame — menu", () => {

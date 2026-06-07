@@ -159,6 +159,7 @@ const cliIO: GameIO = {
     const choices = context.isGraph
       ? [
           { name: t("explore.travel"), value: "travel" },
+          { name: t("explore.hunt"), value: "hunt" },
           { name: t("explore.map"), value: "map" },
           { name: t("explore.journal"), value: "journal" },
           { name: t("explore.world"), value: "world" },
