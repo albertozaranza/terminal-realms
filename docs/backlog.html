@@ -65,77 +65,6 @@
     </div>
   </div>
 
-<!-- ===================== EMBEDDED: Plano Fase 16 (markdown) ===================== -->
-<script type="text/markdown" id="doc-plano">
-# Plano de Desenvolvimento — FASE 16: Mundo por Descoberta
-
-> Status: **proposta para análise** (não iniciar implementação antes da aprovação).
-
-## Decisões travadas
-
-1. **Navegação:** grafo de descoberta. Visual rico de mapa (caixas, conexões, fog, portas 🔒) com viagem por seleção de locais conhecidos no menu. **Sem andar tile-a-tile** — respeita a spec.
-2. **Layout do mapa:** coordenadas manuais no dado (`coord {col,row}`); renderer desenha caixas e conexões ortogonais. Sem engine de tiles.
-3. **Escopo da 1ª entrega:** fatia vertical completa na **Região 1 (Bosque Sombrio)** — jogável fim-a-fim antes de expandir.
-
-## Mudança arquitetural a aprovar
-
-Hoje a progressão é **linear**: `WorldEngine.advance()` sorteia encontro e `systems/region.ts` avança por `REGION_ORDER`. Esta fase substitui isso por **navegação em grafo de locais**. É aditivo — combate, loot, XP, classes, save e i18n **não mudam de regra**, apenas ganham um novo orquestrador de mundo.
-
-## Modelo conceitual — "Mapa-Constelação"
-
-O mundo é um **grafo de POIs**. O jogador **viaja** para um local alcançável já descoberto (menu) — não anda pelo mapa. Visitar um local revela vizinhos (`?` → ícone); conversar com NPCs / concluir missões revela atalhos e destrava portas (🔒). Não-linear: múltiplas rotas, becos, locais opcionais, gates por conhecimento.
-
-### Estados do local
-`UNDISCOVERED ❓` · `DISCOVERED 🌲` · `AVAILABLE ⚔` · `COMPLETED ✅` · `LOCKED 🔒`
-
-### Mockup — mapa da região
-```
-╔══════════════════════ 🌲 BOSQUE SOMBRIO ══════════════════════╗
-║ 🏰 vila  🧙 npc  💰 loja  🏚 ruína  🪦 cripta  👑 chefe        ║
-║ ⚔ disponível   ✅ concluído   🔒 bloqueado   ❓ desconhecido   ║
-╠════════════════════════════════════════════════════════════════╣
-║   [🏰 Vila Oakheart]━━━━━━━[✅ Estrada Principal]              ║
-║         ┃                          ┃                          ║
-║   [🧙 Caçador]              [🌲 Bosque Sombrio] ◄ você         ║
-║                              ┏━━━━━┻━━━━━┓                     ║
-║                         [🏚 Ruínas]   [❓ ? ? ?]              ║
-║                              ┃                                 ║
-║                         [🔒 Cripta Esquecida]                 ║
-║                            requer: "entrada atrás da cachoeira"║
-║                              ┊                                 ║
-║                         [👑 ? ? ?]                            ║
-╚════════════════════════════════════════════════════════════════╝
-```
-
-### Mockup — diário de conhecimento
-```
-📖 Conhecimentos — Bosque Sombrio
-  ☑ Goblins atacam viajantes na estrada.
-  ☑ Um necromante foi visto na floresta.
-  ☑ Existe uma cripta antiga.
-  ☐ Localização da cripta.        → destrava 🔒 Cripta
-  ☐ Fraqueza do necromante.       → bônus no chefe
-```
-
-## Tasks — FASE 16
-
-| Task | Escopo | Depende |
-|------|--------|---------|
-| **T060** | Tipos do mundo de descoberta (Location, NPC, Dialogue, Knowledge, LocationState; Region/Quest estendidos) | — |
-| **T061** | GameState + save/migração (locationStates, knowledge, journal, npcStates, currentLocation) | T060 |
-| **T062** | `systems/discovery.ts` puro: revelar local, marcar concluído, getReachableDestinations, requisitos, descoberta em cadeia | T060/61 |
-| **T063** | `systems/journal.ts` puro: addKnowledge, hasKnowledge, gates de conhecimento | T060/61 |
-| **T064** | `systems/dialogue.ts` puro: percorrer árvore, aplicar effects | T060/61 |
-| **T065** | `core/WorldMapEngine`: travelTo resolve conteúdo do local → encontro + revelações. Refatora advance() linear | T062/63/64 |
-| **T066** | Conteúdo: Região 1 como grafo (Vila, Estrada, Caçador, Bosque, Ruínas, Cripta 🔒, Necromante 👑, mercador) | T060–065 |
-| **T067** | UI: mapRender + mapScreen — mapa espacial com fog, ícones por estado, 🔒 com requisito, "você está aqui", legenda | T065 |
-| **T068** | UI: dialogueScreen — fala do NPC + opções numeradas + feedback de revelação | T064 |
-| **T069** | UI: journalScreen — ☑/☐ por região | T063 |
-| **T070** | UI: mapa-múndi de regiões (absorve T059) | T067 |
-| **T071** | Integração no loop (game.ts): menu Mapa/Viajar/Diário/Inventário/Loja/Salvar; i18n en/ptBR | todas |
-| **T072** | Polimento: arte ANSI por tipo de local, balanceamento, checks verdes; atualizar docs | todas |
-</script>
-
 <script>
 /* ===================== BACKLOG DATA (snapshot dos docs) ===================== */
 const PHASES = {
@@ -207,7 +136,7 @@ const TASKS = [
   T("T056","Loja / Comerciante","done","F14","`systems/shop.ts` puro; lojas data-driven; compra/venda múltiplas; `EventResult` aplicado de fato (ver D-08/D-09)."),
   T("T057","Design de progressão","done","F15","Documento PROGRESSAO.md: diagnóstico (inimigos Lv1–4 + chefe Lv5 num jogo até Lv50), abordagem híbrida recomendada, esboço `scaleEnemy`. Apenas design."),
   T("T058","Estoque rotativo da loja por região","backlog","F15","Depende de mais de uma região."),
-  T("T059","Mapa de regiões no menu","backlog","F15","Absorvido pela Fase 16 (T070)."),
+  T("T059","Mapa de regiões no menu","done","F15","Concluído via **T070** (mapa-múndi de regiões da Fase 16)."),
   // ---- FASE 16 (proposta) ----
   T("T060","Tipos do mundo de descoberta","done","F16","Location, NPC, Dialogue, Knowledge, LocationState; Region/Quest estendidos.","—"),
   T("T061","GameState + save/migração","done","F16","locationStates, knowledge, journal, npcStates, currentLocation. Defaults para saves antigos (fog total na entryLocation).","T060"),
@@ -282,7 +211,7 @@ const $=id=>document.getElementById(id);
 function shortPhase(ph){ const f=PHASES[ph]||ph; const m=f.match(/FASE\s*(\d+)\s*[—-]\s*([^(]*)/); return m?("F"+m[1]+" · "+m[2].trim()):f; }
 
 function renderTabs(){
-  const tabs=[["board","📋 Board"],["plano","🗺️ Plano Fase 16"]];
+  const tabs=[["board","📋 Board"]];
   $("tabs").innerHTML=tabs.map(([k,l])=>
     `<div data-tab="${k}" class="px-3.5 py-2 rounded-t-lg cursor-pointer text-sm ${VIEW===k?'text-slate-100 bg-[#0d1017] border border-slate-700/60 border-b-0':'text-slate-400 hover:text-slate-200'}">${l}</div>`
   ).join("");
@@ -331,11 +260,7 @@ function renderBoard(){
   $("main").innerHTML=html;
   $("main").querySelectorAll(".task").forEach(el=>el.onclick=()=>openTask(el.dataset.id));
 }
-function renderDoc(){
-  const md=$("doc-plano").textContent;
-  $("main").innerHTML=`<div class="h-full overflow-y-auto scroll px-8 py-6"><div class="max-w-3xl mx-auto md">${renderMarkdown(md)}</div></div>`;
-}
-function render(){ renderTabs(); VIEW==="board"?renderBoard():renderDoc(); }
+function render(){ renderTabs(); renderBoard(); }
 
 function openTask(id){
   const t=TASKS.find(x=>x.id===id); if(!t) return;
