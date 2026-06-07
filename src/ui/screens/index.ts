@@ -1,5 +1,6 @@
 export * from "./characterScreen";
 export * from "./combatScreen";
+export * from "./dialogueScreen";
 export * from "./endScreens";
 export * from "./exploreScreen";
 export * from "./inventoryScreen";
