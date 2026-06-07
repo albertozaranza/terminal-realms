@@ -29,7 +29,7 @@ Não iniciar uma tarefa antes da anterior estar concluída e funcional.
 | 13 — Overhaul de UI (TUI) | T050 | ✅ Concluída |
 | 14 — Economia, Itens e Equipamento | T051–T056 | ✅ Concluída |
 | 15 — Progressão & Diversidade | T057–T059 | 🗄️ Backlog |
-| 16 — Mundo por Descoberta | T060–T072 | 🚧 Em andamento |
+| 16 — Mundo por Descoberta | T060–T072 | ✅ Concluída |
 
 O histórico detalhado de conclusão e as decisões técnicas ficam em [PROGRESS.md](PROGRESS.md).
 
@@ -745,7 +745,7 @@ Modo Hardcore
 # FASE 13 — OVERHAUL DE UI (TUI) — ✅ CONCLUÍDA
 
 Objetivo: transformar a interface em uma aplicação de terminal de tela
-cheia (TUI), conforme `docs/spec.md`. Sem alterar regras de negócio
+cheia (TUI). Sem alterar regras de negócio
 (combate, progressão, XP, loot, classes, save) — apenas UI, renderização,
 ANSI art, menus e feedback visual.
 
@@ -912,17 +912,17 @@ Mapa de regiões no menu principal/exploração. **Absorvida pela FASE 16 (T070)
 
 ---
 
-# FASE 16 — MUNDO POR DESCOBERTA — 🚧 EM ANDAMENTO
+# FASE 16 — MUNDO POR DESCOBERTA — ✅ CONCLUÍDA
 
 Objetivo: substituir a exploração linear por um **grafo de locais (POIs)**
 descoberto progressivamente — o "Mapa-Constelação". O jogador viaja
 selecionando locais conhecidos (sem grid/WASD), e visitar locais, conversar
 com NPCs e concluir missões revela novos locais, conhecimento e atalhos.
-Plano completo e decisões em [PLANO_FASE16_MUNDO.md](PLANO_FASE16_MUNDO.md).
+Decisões e histórico em [PROGRESS.md](PROGRESS.md).
 
-Entrega como **fatia vertical na Região 1**. Combate, loot, XP, classes e
-save mantêm as regras — ganham um novo orquestrador de mundo (proposta
-arquitetural aprovada: progressão linear → grafo de locais).
+Entregue como **fatia vertical na Região 1** (Bosque Sombrio). Combate, loot,
+XP, classes e save mantêm as regras — ganharam um novo orquestrador de mundo
+(mudança arquitetural aprovada: progressão linear → grafo de locais).
 
 ---
 

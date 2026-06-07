@@ -144,7 +144,7 @@ const PHASES = {
   F7:"FASE 7 — Interface", F8:"FASE 8 — Persistência", F9:"FASE 9 — MVP Release",
   F10:"FASE 10 — i18n", F11:"FASE 11 — Refinamentos Técnicos", F12:"FASE 12 — Roadmap Futuro",
   F13:"FASE 13 — Overhaul de UI (TUI)", F14:"FASE 14 — Economia, Itens e Equipamento",
-  F15:"FASE 15 — Progressão & Diversidade", F16:"FASE 16 — Mundo por Descoberta (proposta)"
+  F15:"FASE 15 — Progressão & Diversidade", F16:"FASE 16 — Mundo por Descoberta"
 };
 // status: done | backlog | proposta
 const T = (id,title,status,ph,detail,deps="") => ({id,title,status,ph,detail,deps});
@@ -209,19 +209,19 @@ const TASKS = [
   T("T058","Estoque rotativo da loja por região","backlog","F15","Depende de mais de uma região."),
   T("T059","Mapa de regiões no menu","backlog","F15","Absorvido pela Fase 16 (T070)."),
   // ---- FASE 16 (proposta) ----
-  T("T060","Tipos do mundo de descoberta","proposta","F16","Location, NPC, Dialogue, Knowledge, LocationState; Region/Quest estendidos.","—"),
-  T("T061","GameState + save/migração","proposta","F16","locationStates, knowledge, journal, npcStates, currentLocation. Defaults para saves antigos (fog total na entryLocation).","T060"),
-  T("T062","systems/discovery.ts (puro)","proposta","F16","Revelar local, marcar concluído, `getReachableDestinations`, checagem de requisitos, descoberta em cadeia.","T060/61"),
-  T("T063","systems/journal.ts (puro)","proposta","F16","addKnowledge, hasKnowledge, gates de conhecimento.","T060/61"),
-  T("T064","systems/dialogue.ts (puro)","proposta","F16","Percorrer árvore de diálogo, aplicar `effects` (revealLocation, grantKnowledge, startQuest, openShop, startCombat).","T060/61"),
-  T("T065","core/WorldMapEngine","proposta","F16","`travelTo(locationId)` resolve o conteúdo do local → encontro + dispara revelações. Refatora o `advance()` linear.","T062/63/64"),
-  T("T066","Conteúdo: Região 1 como grafo","proposta","F16","Vila Oakheart, Estrada, Caçador, Bosque, Ruínas, Cripta 🔒, Necromante 👑, mercador — NPCs, diálogos, conhecimentos, missões de investigação.","T060–065"),
-  T("T067","UI: mapa da região","proposta","F16","`mapRender` + `mapScreen` — mapa espacial com fog, ícones por estado, 🔒 com requisito, \"você está aqui\", legenda.","T065"),
-  T("T068","UI: diálogo de NPC","proposta","F16","`dialogueScreen` — fala do NPC + opções numeradas + feedback de revelação.","T064"),
-  T("T069","UI: diário","proposta","F16","`journalScreen` — ☑/☐ por região.","T063"),
-  T("T070","UI: mapa-múndi de regiões","proposta","F16","Regiões conhecidas, ramificado. Absorve T059.","T067"),
-  T("T071","Integração no loop","proposta","F16","`game.ts`: menu vira Mapa/Viajar/Diário/Inventário/Loja/Salvar; fia travel → conteúdo → combate/diálogo/evento/boss; i18n en/ptBR.","todas"),
-  T("T072","Polimento","proposta","F16","Arte ANSI por tipo de local, balanceamento, `yarn check`/`tsc`/`test:run`/`build` verdes; atualizar ARCHITECTURE/GDD/CONTENT_BIBLE/spec.","todas"),
+  T("T060","Tipos do mundo de descoberta","done","F16","Location, NPC, Dialogue, Knowledge, LocationState; Region/Quest estendidos.","—"),
+  T("T061","GameState + save/migração","done","F16","locationStates, knowledge, journal, npcStates, currentLocation. Defaults para saves antigos (fog total na entryLocation).","T060"),
+  T("T062","systems/discovery.ts (puro)","done","F16","Revelar local, marcar concluído, `getReachableDestinations`, checagem de requisitos, descoberta em cadeia.","T060/61"),
+  T("T063","systems/journal.ts (puro)","done","F16","addKnowledge, hasKnowledge, gates de conhecimento.","T060/61"),
+  T("T064","systems/dialogue.ts (puro)","done","F16","Percorrer árvore de diálogo, aplicar `effects` (revealLocation, grantKnowledge, startQuest, openShop, startCombat).","T060/61"),
+  T("T065","core/WorldMapEngine","done","F16","`travelTo(locationId)` resolve o conteúdo do local → encontro + dispara revelações. Refatora o `advance()` linear.","T062/63/64"),
+  T("T066","Conteúdo: Região 1 como grafo","done","F16","Vila Oakheart, Estrada, Caçador, Bosque, Ruínas, Cripta 🔒, Necromante 👑, mercador — NPCs, diálogos, conhecimentos, missões de investigação.","T060–065"),
+  T("T067","UI: mapa da região","done","F16","`mapRender` + `mapScreen` — mapa espacial com fog, ícones por estado, 🔒 com requisito, \"você está aqui\", legenda.","T065"),
+  T("T068","UI: diálogo de NPC","done","F16","`dialogueScreen` — fala do NPC + opções numeradas + feedback de revelação.","T064"),
+  T("T069","UI: diário","done","F16","`journalScreen` — ☑/☐ por região.","T063"),
+  T("T070","UI: mapa-múndi de regiões","done","F16","Regiões conhecidas, ramificado. Absorve T059.","T067"),
+  T("T071","Integração no loop","done","F16","`game.ts`: menu vira Mapa/Viajar/Diário/Inventário/Loja/Salvar; fia travel → conteúdo → combate/diálogo/evento/boss; i18n en/ptBR.","todas"),
+  T("T072","Polimento","done","F16","Arte ANSI por tipo de local, balanceamento, `yarn check`/`tsc`/`test:run`/`build` verdes; atualizar ARCHITECTURE/GDD/CONTENT_BIBLE/spec.","todas"),
 ];
 
 const STATUS = {

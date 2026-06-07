@@ -435,8 +435,42 @@ interface Region {
   enemyPool: string[];
 
   bossId: string;
+
+  // FASE 16 — exploração por grafo de descoberta (campos opcionais)
+  entryLocationId?: string;
+  locations?: Location[];
+  knowledge?: Knowledge[];
 }
 ```
+
+## Exploração: linear vs. grafo de descoberta (FASE 16)
+
+Uma região pode ser explorada de duas formas, decididas pelos dados:
+
+- **Linear (legado):** apenas `enemyPool`/`bossId`. Encontros aleatórios e
+  chefe fixo (`exploreLinear` em `game.ts`).
+- **Grafo de descoberta:** quando `locations` e `entryLocationId` estão
+  presentes, a região vira uma rede de **POIs** (`Location`) que o jogador
+  descobre progressivamente. Não há grid/WASD: viaja-se selecionando locais
+  conhecidos (`exploreGraph`).
+
+Camadas envolvidas (todas data-driven e testáveis sem interface):
+
+- **types:** `Location`, `LocationState`, `LocationContent`, `NPC`,
+  `Dialogue`, `Knowledge`.
+- **systems (puro):** `discovery` (revelar/estados/destinos/gates),
+  `journal` (conhecimento/objetivos), `dialogue` (árvore + efeitos).
+- **core:** `WorldMapEngine` orquestra `travelTo` e os efeitos de diálogo
+  (core compõe systems; nunca o contrário).
+- **content:** grafo de locais, NPCs, diálogos, conhecimentos e missões de
+  investigação (ex.: `content/regions/darkWoods.ts`).
+- **ui:** `mapScreen`/`mapRender`, `dialogueScreen`, `journalScreen`,
+  `worldMapScreen` — recebem estados já derivados, sem regra de negócio.
+
+O **conhecimento** é a moeda de progressão: destrava locais (`requirements`),
+opções de diálogo e chefes. O estado de descoberta vive em `GameState`
+(`locationStates`, `knowledge`, `npcStates`, `currentLocationId`) e é
+persistido com migração para saves antigos.
 
 ---
 

@@ -686,3 +686,20 @@ O conteúdo definido neste arquivo deve prevalecer para:
 - equipamentos
 - loot
 - economia
+
+---
+
+# FASE 16 — Bosque Sombrio (grafo de descoberta)
+
+Primeira região explorada como grafo de POIs (data-driven em
+`content/regions/darkWoods.ts`):
+
+- **Locais:** Vila Oakheart (entrada), Estrada Principal (goblin), Cabana do
+  Caçador (NPC), Banca do Mercador (loja), Coração do Bosque (lobo), Ruínas
+  Antigas (lore → "entrada da cripta"), Cripta Esquecida 🔒 (esqueleto),
+  Necromante da Floresta 👑 (chefe, Lv6).
+- **NPC:** O Caçador — concede conhecimento e inicia a investigação.
+- **Conhecimentos:** goblins na estrada, necromante avistado, cripta antiga,
+  entrada da cripta (gate do chefe).
+- **Missão:** "Sombras sobre o Bosque" (investigação, objetivos por
+  conhecimento/local, não "mate N").

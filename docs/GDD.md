@@ -475,3 +475,14 @@ Utilize arquitetura modular, tipagem forte, princípios SOLID e separação clar
 O projeto deve ser totalmente funcional via terminal e pronto para execução através de yarn install e yarn start.
 
 Implemente inicialmente um MVP completo e jogável e posteriormente expanda o conteúdo através de arquivos de configuração para permitir a adição de novos monstros, regiões, itens e habilidades sem alterar a engine principal.
+
+---
+
+# FASE 16 — Mundo por Descoberta
+
+A exploração evoluiu de linear para um **grafo de descoberta** (o
+"Mapa-Constelação"): o jogador não anda em grid nem usa WASD; ele **viaja**
+entre Pontos de Interesse (POIs) conhecidos e descobre o mundo conversando com
+NPCs, investigando locais e adquirindo conhecimento. O conhecimento destrava
+locais, opções de diálogo e chefes. A primeira região nesse modelo é o
+**Bosque Sombrio** (`dark_woods`). Detalhes técnicos em [ARCHITECTURE.md](ARCHITECTURE.md).

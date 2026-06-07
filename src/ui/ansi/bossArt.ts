@@ -22,6 +22,20 @@ const BOSS_ART: Readonly<Record<string, string>> = {
     "         /__|   |__\\         ",
     "        (___)   (___)        ",
   ].join("\n"),
+  forest_necromancer: [
+    '          .-"""""-.          ',
+    "         /  _   _  \\         ",
+    "        |  (X) (X)  |        ",
+    "        |     <     |        ",
+    "         \\  \\___/  /         ",
+    "        .-`~~|||~~`-.        ",
+    "       / †  /|||\\  † \\       ",
+    "      |   /  |||  \\   |      ",
+    "      |  | .-'''-. |  |      ",
+    "       \\ |/  ☠ ☠  \\| /       ",
+    "        \\|  ' --- '|/        ",
+    "         `--.___.--`         ",
+  ].join("\n"),
 };
 
 /** Renderiza a arte de um chefe. Lança erro se não houver arte. */
