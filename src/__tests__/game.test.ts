@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { WarriorClass } from "../classes";
 import { startingFields } from "../content";
 import { createCharacter, createInitialGameState } from "../core";
-import type { GameIO, RunGameOptions } from "../game";
+import type { CombatContext, GameIO, RunGameOptions, TravelChoice } from "../game";
 import { runGame } from "../game";
 import { type SaveStorage, saveGame } from "../systems";
 import { DEFAULT_LANGUAGE, getLanguage, setLanguage, t } from "../utils";
@@ -28,22 +28,56 @@ function memoryStorage(): SaveStorage {
   };
 }
 
+/** Travels through a fixed sequence of locations, then stays put. */
+function travelSequence(ids: readonly string[]): () => Promise<TravelChoice> {
+  let index = 0;
+  return async () =>
+    index < ids.length ? { type: "go", locationId: ids[index++] } : { type: "back" };
+}
+
+/** Replays a fixed sequence of menu actions, repeating the last one. */
+function sequence<T>(values: readonly T[]): () => Promise<T> {
+  let index = 0;
+  return async () => values[Math.min(index++, values.length - 1)];
+}
+
+/** Replays dialogue option indices, falling back to the last option. */
+function talkSequence(
+  indices: readonly number[],
+): (ctx: { options: readonly unknown[] }) => Promise<number> {
+  let index = 0;
+  return async (ctx) =>
+    index < indices.length ? indices[index++] : Math.max(0, ctx.options.length - 1);
+}
+
+/** Attacks; heals from a potion when low and one is available (warrior win path). */
+async function smartCombat(context: CombatContext) {
+  if (context.player.hp <= 40 && context.items.length > 0) {
+    return { type: "item" as const, item: context.items[0].item };
+  }
+  return "attack" as const;
+}
+
 /** Creates a scripted IO for a deterministic playthrough. */
 function scriptIO(overrides: Partial<GameIO> = {}): { io: GameIO; outputs: string[] } {
   const outputs: string[] = [];
-  let menuCalls = 0;
   const io: GameIO = {
     render: (text) => {
       outputs.push(text);
     },
-    mainMenu: async () => (menuCalls++ === 0 ? "new" : "exit"),
+    mainMenu: sequence(["new", "exit"] as const),
     askName: async () => "Hero",
     chooseClass: async (classes) => classes[0], // Warrior
     chooseLanguage: async (current) => current,
-    exploreAction: async () => "boss",
+    exploreAction: async () => "travel",
     combatAction: async () => "attack",
     inventory: async () => ({ type: "close" }),
     shop: async () => ({ type: "close" }),
+    travel: travelSequence(["road"]),
+    talk: async () => 0,
+    regionMap: () => {},
+    journal: () => {},
+    worldMap: () => {},
     ...overrides,
   };
   return { io, outputs };
@@ -55,40 +89,65 @@ const options = (): RunGameOptions => ({
   rng: () => 0,
 });
 
-describe("runGame — playthrough", () => {
-  it("is playable from start to defeating the Goblin King", async () => {
-    const { io, outputs } = scriptIO();
+describe("runGame — graph playthrough (Dark Woods)", () => {
+  it("is playable from start to defeating the Forest Necromancer", async () => {
+    const { io, outputs } = scriptIO({
+      travel: travelSequence(["road", "woods", "ruins", "crypt", "necromancer"]),
+      combatAction: smartCombat,
+    });
     await runGame(io, options());
-    const expected = t("game.bossDefeated", { boss: t("name.goblin_king") });
-    expect(outputs).toContain(expected);
+    expect(outputs).toContain(t("game.bossDefeated", { boss: t("name.forest_necromancer") }));
   });
 
-  it("a level 1 Mage can be defeated by the boss", async () => {
+  it("talking to the hunter starts the investigation quest", async () => {
+    const { io, outputs } = scriptIO({
+      exploreAction: sequence(["travel", "menu"] as const),
+      travel: async () => ({ type: "go", locationId: "hunter" }),
+      talk: talkSequence([0, 0, 3]),
+    });
+    await runGame(io, options());
+    expect(outputs).toContain(
+      t("world.questStarted", { quest: t("quest.investigate_dark_woods.name") }),
+    );
+  });
+
+  it("reveals the crypt entrance by exploring the ruins (lore)", async () => {
+    const { io, outputs } = scriptIO({
+      exploreAction: sequence(["travel", "travel", "travel", "menu"] as const),
+      travel: travelSequence(["road", "woods", "ruins"]),
+      combatAction: smartCombat,
+    });
+    await runGame(io, options());
+    expect(outputs).toContain(t("world.knowledgeGained", { fact: t("knowledge.crypt_entrance") }));
+  });
+
+  it("a level 1 Mage is defeated pushing toward the boss", async () => {
     const { io, outputs } = scriptIO({
       chooseClass: async (classes) => classes[2], // Mage
+      travel: travelSequence(["road", "woods", "ruins", "crypt", "necromancer"]),
+      combatAction: async () => "attack",
     });
     await runGame(io, options());
     expect(outputs).toContain(t("game.defeated"));
   });
 
-  it("reports when there is no save to continue", async () => {
-    let menuCalls = 0;
-    const { io, outputs } = scriptIO({
-      mainMenu: async () => (menuCalls++ === 0 ? "continue" : "exit"),
-    });
-    await runGame(io, options());
-    expect(outputs).toContain(t("game.noSave"));
-  });
-
-  it("allows fleeing from combat", async () => {
-    let menuCalls = 0;
-    let exploreCalls = 0;
+  it("allows fleeing from a combat location", async () => {
     const { io } = scriptIO({
-      mainMenu: async () => (menuCalls++ === 0 ? "new" : "exit"),
-      exploreAction: async () => (exploreCalls++ === 0 ? "explore" : "menu"),
+      exploreAction: sequence(["travel", "menu"] as const),
+      travel: async () => ({ type: "go", locationId: "road" }),
       combatAction: async () => "flee",
     });
     await expect(runGame(io, options())).resolves.toBeUndefined();
+  });
+});
+
+describe("runGame — menu", () => {
+  it("reports when there is no save to continue", async () => {
+    const { io, outputs } = scriptIO({
+      mainMenu: sequence(["continue", "exit"] as const),
+    });
+    await runGame(io, options());
+    expect(outputs).toContain(t("game.noSave"));
   });
 
   it("ends when choosing exit", async () => {
@@ -100,21 +159,19 @@ describe("runGame — playthrough", () => {
 
 describe("runGame — language", () => {
   it("switches language from the menu and reflects it in the UI", async () => {
-    let menuCalls = 0;
     const { io, outputs } = scriptIO({
-      mainMenu: async () => (menuCalls++ === 0 ? "language" : "exit"),
+      mainMenu: sequence(["language", "exit"] as const),
       chooseLanguage: async () => "en",
     });
     await runGame(io, options());
     expect(getLanguage()).toBe("en");
-    // Farewell message is now in English.
     expect(outputs.some((line) => line.includes("Until the next adventure"))).toBe(true);
   });
 
   it("restores the persisted language when continuing the save", async () => {
     const opts = options();
 
-    // Saves a state created with the language set to English.
+    // Saves a (legacy, linear) state created with the language set to English.
     setLanguage("en");
     const state = createInitialGameState(
       createCharacter({ name: "Hero", characterClass: new WarriorClass() }),
@@ -123,11 +180,9 @@ describe("runGame — language", () => {
     expect(state.language).toBe("en");
     await saveGame(state, opts);
 
-    // Switches back to pt-BR and continues: the save's language must be restored.
     setLanguage("pt-BR");
-    let menuCalls = 0;
     const { io } = scriptIO({
-      mainMenu: async () => (menuCalls++ === 0 ? "continue" : "exit"),
+      mainMenu: sequence(["continue", "exit"] as const),
       exploreAction: async () => "menu",
     });
     await runGame(io, opts);

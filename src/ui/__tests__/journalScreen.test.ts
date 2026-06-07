@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { darkWoods, investigateDarkWoods } from "../../content";
 import type { LocationState } from "../../types";
+import { t } from "../../utils";
 import { renderJournalScreen } from "../screens";
 
 describe("renderJournalScreen", () => {
@@ -17,7 +18,7 @@ describe("renderJournalScreen", () => {
       72,
     );
     expect(screen).toContain("☑"); // fatos conhecidos
-    expect(screen).toContain("knowledge.necromancer_seen");
+    expect(screen).toContain(t("knowledge.necromancer_seen"));
     expect(screen).toContain("(2/4)"); // progresso de conhecimento
   });
 
@@ -42,6 +43,6 @@ describe("renderJournalScreen", () => {
     );
     // O objetivo "learn necromancer" deve aparecer concluído (☑) junto aos fatos.
     expect(screen).toContain("☑");
-    expect(screen).toContain("quest.investigate_dark_woods.obj.necromancer");
+    expect(screen).toContain(t("quest.investigate_dark_woods.obj.necromancer"));
   });
 });

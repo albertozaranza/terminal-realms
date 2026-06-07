@@ -19,9 +19,15 @@ import {
   type GameIO,
   type InventoryChoice,
   type InventoryContext,
+  type JournalContext,
+  type NpcDialogueContext,
+  type RegionMapContext,
   runGame,
   type ShopChoice,
   type ShopContext,
+  type TravelChoice,
+  type TravelContext,
+  type WorldMapContext,
 } from "./game";
 import { isConsumable, isEquipment, meetsLevel, sellPrice } from "./systems";
 import type { CharacterClass, EquipmentSlot } from "./types";
@@ -31,13 +37,17 @@ import {
   renderClassGallery,
   renderCombatScreen,
   renderCreationIntro,
+  renderDialogueScreen,
   renderExploreScreen,
   renderGameOverScreen,
   renderInventoryScreen,
+  renderJournalScreen,
   renderLanguageScreen,
+  renderMapScreen,
   renderMenuScreen,
   renderShopScreen,
   renderVictoryScreen,
+  renderWorldMapScreen,
 } from "./ui";
 import { type Language, SUPPORTED_LANGUAGES, t } from "./utils";
 
@@ -145,22 +155,83 @@ const cliIO: GameIO = {
 
   exploreAction: async (context: ExploreContext) => {
     renderer.paint(renderExploreScreen(context, renderer.width));
-    const { action } = await inquirer.prompt<{ action: ExploreAction }>([
-      {
-        type: "list",
-        name: "action",
-        message: t("prompt.exploreAction"),
-        choices: [
+    // Modo grafo (FASE 16): viajar/mapa/diário/mundo; modo linear: legado.
+    const choices = context.isGraph
+      ? [
+          { name: t("explore.travel"), value: "travel" },
+          { name: t("explore.map"), value: "map" },
+          { name: t("explore.journal"), value: "journal" },
+          { name: t("explore.world"), value: "world" },
+          { name: t("explore.inventory"), value: "inventory" },
+          { name: t("explore.save"), value: "save" },
+          { name: t("explore.menu"), value: "menu" },
+        ]
+      : [
           { name: t("explore.explore"), value: "explore" },
           { name: t("explore.boss", { boss: t("name.goblin_king") }), value: "boss" },
           { name: t("explore.inventory"), value: "inventory" },
           { name: t("explore.shop"), value: "shop" },
           { name: t("explore.save"), value: "save" },
           { name: t("explore.menu"), value: "menu" },
+        ];
+    const { action } = await inquirer.prompt<{ action: ExploreAction }>([
+      { type: "list", name: "action", message: t("prompt.exploreAction"), choices },
+    ]);
+    return action;
+  },
+
+  travel: async (context: TravelContext): Promise<TravelChoice> => {
+    renderer.paint(renderMapScreen(context, renderer.width));
+    const { choice } = await inquirer.prompt<{ choice: string }>([
+      {
+        type: "grayList",
+        name: "choice",
+        message: t("prompt.travel"),
+        choices: [
+          ...context.destinations.map((destination) => ({
+            name: `${destination.location.icon} ${t(destination.location.name)}`,
+            value: `go:${destination.location.id}`,
+            disabled: destination.travelable ? false : t("travel.locked"),
+          })),
+          { name: t("travel.back"), value: "back" },
         ],
       },
     ]);
-    return action;
+    if (choice === "back" || !choice.startsWith("go:")) {
+      return { type: "back" };
+    }
+    return { type: "go", locationId: choice.slice("go:".length) };
+  },
+
+  talk: async (context: NpcDialogueContext): Promise<number> => {
+    renderer.paint(renderDialogueScreen(context, renderer.width));
+    const { index } = await inquirer.prompt<{ index: number }>([
+      {
+        type: "list",
+        name: "index",
+        message: t("prompt.dialogue"),
+        choices: context.options.map((option, position) => ({
+          name: t(option.text),
+          value: position,
+        })),
+      },
+    ]);
+    return index;
+  },
+
+  regionMap: async (context: RegionMapContext) => {
+    renderer.paint(renderMapScreen(context, renderer.width));
+    await pressEnter();
+  },
+
+  journal: async (context: JournalContext) => {
+    renderer.paint(renderJournalScreen(context, renderer.width));
+    await pressEnter();
+  },
+
+  worldMap: async (context: WorldMapContext) => {
+    renderer.paint(renderWorldMapScreen(context, renderer.width));
+    await pressEnter();
   },
 
   inventory: async (context: InventoryContext): Promise<InventoryChoice> => {

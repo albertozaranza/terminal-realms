@@ -1,31 +1,50 @@
 import { AVAILABLE_CLASSES } from "./classes";
 import {
+  darkWoods,
+  findBossById,
+  findDialogueById,
   findEnemyById,
   findEventById,
   findItemById,
+  findKnowledgeById,
   findLootTable,
+  findNpcById,
+  findQuestById,
   GENERAL_SHOP,
   goblinKing,
   MERCHANT_STOCK,
-  startingFields,
+  REGION_ICONS,
 } from "./content";
 import {
+  applyDialogueEffect,
   applyVictoryRewards,
   CombatEngine,
   createCharacter,
   createInitialGameState,
+  discoveryContextFromState,
   type GameState,
   GOLD_REWARD_MAX_FACTOR,
   GOLD_REWARD_MIN_FACTOR,
+  isCompletable,
+  travelTo,
 } from "./core";
 import {
   addItem,
+  addKnowledge,
   applyLoadoutToPlayer,
+  availableOptions,
   buyOffer,
+  canTravelTo,
+  chooseOption,
   equipFromInventory,
+  findLocation,
+  getDestinations,
+  getLocationState,
+  getStartNode,
   hasSave,
   isConsumable,
   loadGame,
+  markCompleted,
   meetsLevel,
   removeItem,
   rollLoot,
@@ -40,12 +59,18 @@ import {
 import type {
   CharacterClass,
   Consumable,
+  DialogueNode,
+  DialogueOption,
   Enemy,
   EquipmentSlot,
   InventorySlot,
   Item,
   Loadout,
+  Location,
+  LocationState,
+  NPC,
   Player,
+  Quest,
   Region,
   ShopOffer,
   Skill,
@@ -58,7 +83,17 @@ function localizedName(id: string): string {
 }
 
 /** Ação escolhida no menu de exploração. */
-export type ExploreAction = "explore" | "boss" | "inventory" | "shop" | "save" | "menu";
+export type ExploreAction =
+  | "explore"
+  | "boss"
+  | "travel"
+  | "map"
+  | "journal"
+  | "world"
+  | "inventory"
+  | "shop"
+  | "save"
+  | "menu";
 
 /** Contexto da tela de loja (somente leitura, para a UI desenhar). */
 export interface ShopContext {
@@ -121,6 +156,62 @@ export interface ExploreContext {
   gold: number;
   /** Quantidade de itens no inventário canônico (GameState.inventory). */
   itemCount: number;
+  /** Verdadeiro quando a região é explorada como grafo de descoberta (FASE 16). */
+  isGraph?: boolean;
+  /** Nome localizado do local atual (modo grafo). */
+  locationName?: string;
+}
+
+/** Contexto do mapa da região (modo grafo). */
+export interface RegionMapContext {
+  region: Region;
+  displayStates: Record<string, LocationState>;
+  currentLocationId?: string;
+  current?: Location;
+}
+
+/** Um destino de viagem com seu estado e se é navegável. */
+export interface TravelDestination {
+  location: Location;
+  state: LocationState;
+  travelable: boolean;
+}
+
+/** Contexto da tela de viagem (mapa + destinos alcançáveis). */
+export interface TravelContext extends RegionMapContext {
+  destinations: readonly TravelDestination[];
+}
+
+/** Escolha do jogador na tela de viagem. */
+export type TravelChoice = { type: "go"; locationId: string } | { type: "back" };
+
+/** Contexto de uma conversa com NPC (nó atual + opções disponíveis). */
+export interface NpcDialogueContext {
+  npc: NPC;
+  node: DialogueNode;
+  options: readonly DialogueOption[];
+}
+
+/** Contexto do diário da região. */
+export interface JournalContext {
+  region: Region;
+  known: readonly string[];
+  quest?: Quest;
+  locationStates: Record<string, LocationState>;
+}
+
+/** Uma região conhecida no mapa-múndi. */
+export interface WorldRegionEntry {
+  id: string;
+  name: string;
+  icon: string;
+  current: boolean;
+}
+
+/** Contexto do mapa-múndi (regiões descobertas). */
+export interface WorldMapContext {
+  regions: readonly WorldRegionEntry[];
+  hasFrontier: boolean;
 }
 
 /** Visão do inimigo em combate (somente leitura, para a UI desenhar). */
@@ -165,6 +256,16 @@ export interface GameIO {
   inventory(context: InventoryContext): Promise<InventoryChoice>;
   /** Tela de loja: comprar/vender itens ou sair. */
   shop(context: ShopContext): Promise<ShopChoice>;
+  /** Tela de viagem (modo grafo): escolhe um destino alcançável ou volta. */
+  travel?(context: TravelContext): Promise<TravelChoice>;
+  /** Conversa com um NPC: devolve o índice da opção escolhida. */
+  talk?(context: NpcDialogueContext): Promise<number>;
+  /** Mostra o mapa da região e aguarda (modo grafo). */
+  regionMap?(context: RegionMapContext): void | Promise<void>;
+  /** Mostra o diário da região e aguarda. */
+  journal?(context: JournalContext): void | Promise<void>;
+  /** Mostra o mapa-múndi e aguarda. */
+  worldMap?(context: WorldMapContext): void | Promise<void>;
   /** Tela dedicada de vitória (chefe). Opcional: a UI pode implementá-la. */
   victory?(context: EndContext): void | Promise<void>;
   /** Tela dedicada de fim de jogo (derrota). Opcional. */
@@ -460,8 +561,15 @@ function nextEncounter(
   return { kind: "enemy", enemyId };
 }
 
-/** Loop de exploração de uma sessão até derrota, vitória do chefe ou saída. */
-async function explore(io: GameIO, initial: GameState, options: RunGameOptions): Promise<void> {
+/**
+ * Loop de exploração **linear** (legado): encontros aleatórios e chefe fixo.
+ * Usado por regiões sem grafo de descoberta (ex.: Campos Iniciais).
+ */
+async function exploreLinear(
+  io: GameIO,
+  initial: GameState,
+  options: RunGameOptions,
+): Promise<void> {
   let state = initial;
 
   while (true) {
@@ -546,6 +654,370 @@ async function explore(io: GameIO, initial: GameState, options: RunGameOptions):
   }
 }
 
+/** Estados de exibição de todos os locais da região atual (derivados). */
+function computeDisplayStates(state: GameState): Record<string, LocationState> {
+  const context = discoveryContextFromState(state);
+  const states: Record<string, LocationState> = {};
+  for (const location of state.currentRegion.locations ?? []) {
+    states[location.id] = getLocationState(location, state.locationStates, context);
+  }
+  return states;
+}
+
+/** Local atual da região (modo grafo). */
+function currentLocation(state: GameState): Location | undefined {
+  return state.currentLocationId
+    ? findLocation(state.currentRegion, state.currentLocationId)
+    : undefined;
+}
+
+/** Monta o contexto do mapa da região. */
+function mapContext(state: GameState): RegionMapContext {
+  return {
+    region: state.currentRegion,
+    displayStates: computeDisplayStates(state),
+    currentLocationId: state.currentLocationId,
+    current: currentLocation(state),
+  };
+}
+
+/** Monta o contexto de viagem (mapa + destinos alcançáveis). */
+function travelContext(state: GameState): TravelContext {
+  const context = discoveryContextFromState(state);
+  const destinations = getDestinations(
+    state.currentRegion,
+    state.currentLocationId ?? state.currentRegion.entryLocationId ?? "",
+    state.locationStates,
+    context,
+  ).map((destination) => ({
+    location: destination.location,
+    state: destination.state,
+    travelable: canTravelTo(destination.state),
+  }));
+  return { ...mapContext(state), destinations };
+}
+
+/** Monta o contexto do diário (conhecimentos + missão ativa). */
+function journalContext(state: GameState): JournalContext {
+  return {
+    region: state.currentRegion,
+    known: state.knowledge,
+    quest: state.activeQuest,
+    locationStates: state.locationStates,
+  };
+}
+
+/** Monta o contexto do mapa-múndi (apenas a região atual no MVP). */
+function worldContext(state: GameState): WorldMapContext {
+  const region = state.currentRegion;
+  return {
+    regions: [
+      { id: region.id, name: region.name, icon: REGION_ICONS[region.id] ?? "🗺️", current: true },
+    ],
+    hasFrontier: true,
+  };
+}
+
+/** Marca o local atual da região como concluído. */
+function completeLocation(state: GameState, locationId: string): GameState {
+  return { ...state, locationStates: markCompleted(state.locationStates, locationId) };
+}
+
+/** Aplica os efeitos de uma escolha de diálogo, exibindo o feedback ao jogador. */
+async function applyEffects(
+  io: GameIO,
+  state: GameState,
+  option: DialogueOption,
+  options: RunGameOptions,
+): Promise<{ state: GameState; ended: boolean }> {
+  const effect = option.effects;
+  if (!effect) {
+    return { state, ended: false };
+  }
+  const outcome = applyDialogueEffect(state, effect);
+  let next = outcome.state;
+
+  if (effect.grantKnowledge) {
+    const fact = findKnowledgeById(effect.grantKnowledge);
+    if (fact) {
+      await io.render(t("world.knowledgeGained", { fact: t(fact.text) }));
+    }
+  }
+  if (effect.revealLocation) {
+    const location = findLocation(next.currentRegion, effect.revealLocation);
+    if (location) {
+      await io.render(t("world.locationRevealed", { location: t(location.name) }));
+    }
+  }
+  if (outcome.startedQuest && !next.activeQuest) {
+    const quest = findQuestById(outcome.startedQuest);
+    if (quest) {
+      next = { ...next, activeQuest: { ...quest, status: "active" } };
+      await io.render(t("world.questStarted", { quest: t(quest.name) }));
+    }
+  }
+  if (outcome.openShop) {
+    const merchant = outcome.openShop === "merchant";
+    next = await runShop(
+      io,
+      next,
+      merchant ? MERCHANT_STOCK : GENERAL_SHOP,
+      merchant ? t("shop.merchantTitle") : t("shop.title"),
+      options,
+    );
+  }
+  if (outcome.startCombat) {
+    const enemy = findEnemyById(outcome.startCombat);
+    if (enemy) {
+      const battle = await resolveCombat(io, next, enemy, false, options.rng);
+      next = battle.state;
+      if (battle.outcome === "defeat") {
+        await io.render(t("game.defeated"));
+        await io.gameOver?.({ state: next });
+        return { state: next, ended: true };
+      }
+    }
+  }
+  return { state: next, ended: false };
+}
+
+/** Conduz uma conversa com um NPC até o jogador encerrá-la. */
+async function runDialogue(
+  io: GameIO,
+  initial: GameState,
+  npc: NPC,
+  options: RunGameOptions,
+): Promise<{ state: GameState; ended: boolean }> {
+  const dialogue = findDialogueById(npc.dialogueId);
+  if (!dialogue || !io.talk) {
+    return { state: initial, ended: false };
+  }
+  let state: GameState = initial.npcStates[npc.id]?.talkedTo
+    ? initial
+    : { ...initial, npcStates: { ...initial.npcStates, [npc.id]: { talkedTo: true } } };
+
+  let node = getStartNode(dialogue);
+  while (true) {
+    const available = availableOptions(node, discoveryContextFromState(state));
+    if (available.length === 0) {
+      break;
+    }
+    const index = await io.talk({ npc, node, options: available });
+    const option = available[Math.max(0, Math.min(index, available.length - 1))];
+
+    const applied = await applyEffects(io, state, option, options);
+    state = applied.state;
+    if (applied.ended) {
+      return { state, ended: true };
+    }
+
+    const step = chooseOption(dialogue, option);
+    if (step.ends || !step.nextNode) {
+      break;
+    }
+    node = step.nextNode;
+  }
+  await saveGame(state, options);
+  return { state, ended: false };
+}
+
+/** Resolve o conteúdo de um local visitado (combate/boss/npc/loja/lore). */
+async function resolveLocationContent(
+  io: GameIO,
+  initial: GameState,
+  location: Location,
+  alreadyCompleted: boolean,
+  options: RunGameOptions,
+): Promise<{ state: GameState; ended: boolean }> {
+  let state = initial;
+  const content = location.content;
+
+  // Revisita de um local já concluído: nada de novo combate/lore.
+  if (alreadyCompleted && isCompletable(content)) {
+    if (location.description) {
+      await io.render(t(location.description));
+    }
+    return { state, ended: false };
+  }
+
+  switch (content.kind) {
+    case "combat": {
+      const enemy = findEnemyById(content.enemyId);
+      if (enemy) {
+        const battle = await resolveCombat(io, state, enemy, false, options.rng);
+        state = battle.state;
+        if (battle.outcome === "defeat") {
+          await io.render(t("game.defeated"));
+          await io.gameOver?.({ state });
+          return { state, ended: true };
+        }
+        if (battle.outcome === "victory") {
+          state = completeLocation(state, location.id);
+          await io.render(t("world.locationCleared", { location: t(location.name) }));
+        }
+      }
+      break;
+    }
+    case "boss": {
+      const boss = findBossById(content.bossId);
+      if (boss) {
+        const battle = await resolveCombat(io, state, boss, true, options.rng);
+        state = battle.state;
+        if (battle.outcome === "defeat") {
+          await io.render(t("game.defeated"));
+          await io.gameOver?.({ state });
+          return { state, ended: true };
+        }
+        if (battle.outcome === "victory") {
+          state = completeLocation(state, location.id);
+          await io.render(t("game.bossDefeated", { boss: t(boss.name) }));
+          await io.victory?.({ state, bossName: t(boss.name) });
+          await saveGame(state, options);
+          return { state, ended: true };
+        }
+      }
+      break;
+    }
+    case "npc": {
+      const npc = findNpcById(content.npcId);
+      if (npc) {
+        const talked = await runDialogue(io, state, npc, options);
+        state = talked.state;
+        if (talked.ended) {
+          return { state, ended: true };
+        }
+      }
+      break;
+    }
+    case "shop": {
+      const merchant = content.shopId === "merchant";
+      state = await runShop(
+        io,
+        state,
+        merchant ? MERCHANT_STOCK : GENERAL_SHOP,
+        merchant ? t("shop.merchantTitle") : t("shop.title"),
+        options,
+      );
+      break;
+    }
+    case "lore": {
+      const fact = findKnowledgeById(content.knowledgeId);
+      if (fact && !state.knowledge.includes(fact.id)) {
+        state = { ...state, knowledge: addKnowledge(state.knowledge, fact.id) };
+        await io.render(t("world.knowledgeGained", { fact: t(fact.text) }));
+      }
+      state = completeLocation(state, location.id);
+      break;
+    }
+    default: {
+      if (location.description) {
+        await io.render(t(location.description));
+      }
+    }
+  }
+  return { state, ended: false };
+}
+
+/** Viaja para um local e resolve seu conteúdo. */
+async function visitLocation(
+  io: GameIO,
+  initial: GameState,
+  locationId: string,
+  options: RunGameOptions,
+): Promise<{ state: GameState; ended: boolean }> {
+  let travel: ReturnType<typeof travelTo>;
+  try {
+    travel = travelTo(initial.currentRegion, initial, locationId);
+  } catch {
+    // A UI só oferece destinos navegáveis; uma falha aqui é apenas defensiva.
+    return { state: initial, ended: false };
+  }
+  let state = travel.state;
+  await io.render(t("world.arrived", { location: t(travel.location.name) }));
+
+  const resolved = await resolveLocationContent(
+    io,
+    state,
+    travel.location,
+    travel.alreadyCompleted,
+    options,
+  );
+  state = resolved.state;
+  if (resolved.ended) {
+    return { state, ended: true };
+  }
+  await saveGame(state, options);
+  return { state, ended: false };
+}
+
+/**
+ * Loop de exploração por **grafo de descoberta** (FASE 16): o jogador viaja
+ * entre locais conhecidos, conversa, investiga e enfrenta o chefe.
+ */
+async function exploreGraph(
+  io: GameIO,
+  initial: GameState,
+  options: RunGameOptions,
+): Promise<void> {
+  let state = initial;
+
+  while (true) {
+    const here = currentLocation(state);
+    const action = await io.exploreAction({
+      player: state.player,
+      region: state.currentRegion,
+      gold: state.inventory.gold,
+      itemCount: totalItems(state.inventory),
+      isGraph: true,
+      locationName: here ? t(here.name) : undefined,
+    });
+
+    if (action === "menu") {
+      return;
+    }
+    if (action === "save") {
+      await saveGame(state, options);
+      await io.render(t("game.saved"));
+      continue;
+    }
+    if (action === "inventory") {
+      state = await manageInventory(io, state, options);
+      continue;
+    }
+    if (action === "map") {
+      await io.regionMap?.(mapContext(state));
+      continue;
+    }
+    if (action === "journal") {
+      await io.journal?.(journalContext(state));
+      continue;
+    }
+    if (action === "world") {
+      await io.worldMap?.(worldContext(state));
+      continue;
+    }
+    if (action === "travel" && io.travel) {
+      const choice = await io.travel(travelContext(state));
+      if (choice.type === "back") {
+        continue;
+      }
+      const visited = await visitLocation(io, state, choice.locationId, options);
+      state = visited.state;
+      if (visited.ended) {
+        return;
+      }
+    }
+  }
+}
+
+/** Despacha entre exploração por grafo (FASE 16) e linear (legado). */
+async function explore(io: GameIO, initial: GameState, options: RunGameOptions): Promise<void> {
+  if (initial.currentRegion.locations && initial.currentRegion.locations.length > 0) {
+    return exploreGraph(io, initial, options);
+  }
+  return exploreLinear(io, initial, options);
+}
+
 /**
  * Executa o jogo: menu principal, criação/continuação de personagem e
  * o loop de exploração até o primeiro chefe.
@@ -577,7 +1049,8 @@ export async function runGame(io: GameIO, options: RunGameOptions = {}): Promise
     const name = await io.askName();
     const characterClass = await io.chooseClass(AVAILABLE_CLASSES);
     const player = createCharacter({ name, characterClass });
-    await explore(io, createInitialGameState(player, startingFields), options);
+    // FASE 16: novo jogo começa no Bosque Sombrio (grafo de descoberta).
+    await explore(io, createInitialGameState(player, darkWoods), options);
   }
 
   await io.render(t("game.farewell"));

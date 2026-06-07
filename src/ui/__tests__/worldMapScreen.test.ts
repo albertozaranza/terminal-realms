@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { t } from "../../utils";
 import { renderWorldMapScreen } from "../screens";
 
 describe("renderWorldMapScreen", () => {
@@ -11,7 +12,7 @@ describe("renderWorldMapScreen", () => {
       60,
     );
     expect(screen).toContain("🌲");
-    expect(screen).toContain("name.dark_woods");
+    expect(screen).toContain(t("name.dark_woods"));
     expect(screen).toContain("◄");
     // Fronteiras por descobrir aparecem como ❓.
     expect(screen).toContain("❓");
