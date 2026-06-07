@@ -22,10 +22,12 @@ import {
   createCharacter,
   createInitialGameState,
   discoveryContextFromState,
+  effectiveEnemyLevel,
   type GameState,
   GOLD_REWARD_MAX_FACTOR,
   GOLD_REWARD_MIN_FACTOR,
   isCompletable,
+  scaleEnemy,
   travelTo,
 } from "./core";
 import {
@@ -160,6 +162,10 @@ export interface ExploreContext {
   isGraph?: boolean;
   /** Nome localizado do local atual (modo grafo). */
   locationName?: string;
+  /** Estados de exibição por local — para desenhar o mapa na tela de exploração. */
+  displayStates?: Record<string, LocationState>;
+  /** Local onde o jogador está agora (modo grafo). */
+  currentLocationId?: string;
 }
 
 /** Contexto do mapa da região (modo grafo). */
@@ -190,6 +196,8 @@ export interface NpcDialogueContext {
   npc: NPC;
   node: DialogueNode;
   options: readonly DialogueOption[];
+  /** Chaves i18n das opções já escolhidas antes (exibidas em cinza). */
+  spokenOptions: readonly string[];
 }
 
 /** Contexto do diário da região. */
@@ -792,9 +800,16 @@ async function runDialogue(
   if (!dialogue || !io.talk) {
     return { state: initial, ended: false };
   }
-  let state: GameState = initial.npcStates[npc.id]?.talkedTo
+  const existing = initial.npcStates[npc.id];
+  let state: GameState = existing?.talkedTo
     ? initial
-    : { ...initial, npcStates: { ...initial.npcStates, [npc.id]: { talkedTo: true } } };
+    : {
+        ...initial,
+        npcStates: {
+          ...initial.npcStates,
+          [npc.id]: { talkedTo: true, spokenOptions: existing?.spokenOptions ?? [] },
+        },
+      };
 
   let node = getStartNode(dialogue);
   while (true) {
@@ -802,8 +817,24 @@ async function runDialogue(
     if (available.length === 0) {
       break;
     }
-    const index = await io.talk({ npc, node, options: available });
+    const spokenOptions = state.npcStates[npc.id]?.spokenOptions ?? [];
+    const index = await io.talk({ npc, node, options: available, spokenOptions });
     const option = available[Math.max(0, Math.min(index, available.length - 1))];
+
+    // Registra a opção escolhida para exibi-la em cinza nas próximas conversas.
+    if (!spokenOptions.includes(option.text)) {
+      state = {
+        ...state,
+        npcStates: {
+          ...state.npcStates,
+          [npc.id]: {
+            ...state.npcStates[npc.id],
+            talkedTo: true,
+            spokenOptions: [...spokenOptions, option.text],
+          },
+        },
+      };
+    }
 
     const applied = await applyEffects(io, state, option, options);
     state = applied.state;
@@ -821,6 +852,12 @@ async function runDialogue(
   return { state, ended: false };
 }
 
+/** Escala um inimigo para o nível do jogador, dentro da faixa da região. */
+function scaledEnemy(state: GameState, enemy: Enemy): Enemy {
+  const level = effectiveEnemyLevel(enemy.level, state.player.level, state.currentRegion.maxLevel);
+  return scaleEnemy(enemy, level);
+}
+
 /** Resolve o conteúdo de um local visitado (combate/boss/npc/loja/lore). */
 async function resolveLocationContent(
   io: GameIO,
@@ -832,8 +869,9 @@ async function resolveLocationContent(
   let state = initial;
   const content = location.content;
 
-  // Revisita de um local já concluído: nada de novo combate/lore.
-  if (alreadyCompleted && isCompletable(content)) {
+  // Revisita: locais de combate podem ser refeitos (grind de XP); os demais
+  // completáveis (lore/boss) não repetem — só relembram a descrição.
+  if (alreadyCompleted && content.kind !== "combat" && isCompletable(content)) {
     if (location.description) {
       await io.render(t(location.description));
     }
@@ -844,7 +882,13 @@ async function resolveLocationContent(
     case "combat": {
       const enemy = findEnemyById(content.enemyId);
       if (enemy) {
-        const battle = await resolveCombat(io, state, enemy, false, options.rng);
+        const battle = await resolveCombat(
+          io,
+          state,
+          scaledEnemy(state, enemy),
+          false,
+          options.rng,
+        );
         state = battle.state;
         if (battle.outcome === "defeat") {
           await io.render(t("game.defeated"));
@@ -861,7 +905,7 @@ async function resolveLocationContent(
     case "boss": {
       const boss = findBossById(content.bossId);
       if (boss) {
-        const battle = await resolveCombat(io, state, boss, true, options.rng);
+        const battle = await resolveCombat(io, state, scaledEnemy(state, boss), true, options.rng);
         state = battle.state;
         if (battle.outcome === "defeat") {
           await io.render(t("game.defeated"));
@@ -970,6 +1014,8 @@ async function exploreGraph(
       itemCount: totalItems(state.inventory),
       isGraph: true,
       locationName: here ? t(here.name) : undefined,
+      displayStates: computeDisplayStates(state),
+      currentLocationId: state.currentLocationId,
     });
 
     if (action === "menu") {

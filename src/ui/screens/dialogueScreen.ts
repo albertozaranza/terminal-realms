@@ -10,6 +10,8 @@ export interface DialogueScreenView {
   node: DialogueNode;
   /** Opções disponíveis (já filtradas pelos gates). */
   options: readonly DialogueOption[];
+  /** Chaves i18n das opções já escolhidas antes (exibidas em cinza). */
+  spokenOptions?: readonly string[];
 }
 
 /**
@@ -18,11 +20,18 @@ export interface DialogueScreenView {
  * locais/conhecimento é exibida pelo loop após a escolha (via `render`).
  */
 export function renderDialogueScreen(view: DialogueScreenView, width: number): string {
-  const { npc, node, options } = view;
+  const { npc, node, options, spokenOptions = [] } = view;
   const speaker = `${npc.icon ?? "🧑"} ${t(npc.name)}`;
   const line = chalk.italic(`"${t(node.text)}"`);
   const choices = options
-    .map((option, index) => `${chalk.cyan(`${index + 1}.`)} ${t(option.text)}`)
+    .map((option, index) => {
+      const number = chalk.cyan(`${index + 1}.`);
+      const label = t(option.text);
+      // Opções já faladas ficam acinzentadas para sinalizar o que é novo.
+      return spokenOptions.includes(option.text)
+        ? chalk.gray(`${index + 1}. ${label}`)
+        : `${number} ${label}`;
+    })
     .join("\n");
 
   return panel(`${line}\n\n${choices}`, {

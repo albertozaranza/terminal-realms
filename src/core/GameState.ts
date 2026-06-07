@@ -13,6 +13,12 @@ import { getLanguage, type Language } from "../utils";
 export interface NpcState {
   /** Já conversou com o NPC ao menos uma vez. */
   talkedTo: boolean;
+  /**
+   * Chaves i18n das opções de diálogo já escolhidas — usadas para exibi-las
+   * em cinza nas próximas conversas. Opcional para compatibilidade com saves
+   * antigos (tratado como vazio quando ausente).
+   */
+  spokenOptions?: string[];
 }
 
 /**
