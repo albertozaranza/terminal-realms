@@ -18,6 +18,12 @@ export const REGIONS: Readonly<Record<string, Region>> = {
  */
 export const REGION_ORDER: readonly string[] = ["dark_woods", "starting_fields"];
 
+/** Ícones das regiões para o mapa-múndi (data-driven, sem lógica). */
+export const REGION_ICONS: Readonly<Record<string, string>> = {
+  dark_woods: "🌲",
+  starting_fields: "🌾",
+};
+
 /** Busca uma região pelo id. Retorna undefined se não existir. */
 export function findRegionById(id: string): Region | undefined {
   return REGIONS[id];

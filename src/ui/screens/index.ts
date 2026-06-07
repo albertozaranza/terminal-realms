@@ -8,3 +8,4 @@ export * from "./journalScreen";
 export * from "./mapScreen";
 export * from "./menuScreen";
 export * from "./shopScreen";
+export * from "./worldMapScreen";
