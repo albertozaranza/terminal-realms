@@ -4,6 +4,7 @@ export * from "./dialogueScreen";
 export * from "./endScreens";
 export * from "./exploreScreen";
 export * from "./inventoryScreen";
+export * from "./journalScreen";
 export * from "./mapScreen";
 export * from "./menuScreen";
 export * from "./shopScreen";

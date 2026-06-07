@@ -1,4 +1,4 @@
-import type { Knowledge, Region } from "../types";
+import type { Knowledge, LocationState, QuestObjective, Region } from "../types";
 
 /**
  * Sistema de conhecimento / diário (puro). O conhecimento é a moeda de
@@ -43,4 +43,22 @@ export function knowledgeProgress(
     known: facts.filter((fact) => known.includes(fact.id)).length,
     total: facts.length,
   };
+}
+
+/**
+ * Indica se um objetivo de investigação está concluído: o conhecimento exigido
+ * foi adquirido e/ou o local exigido foi concluído.
+ */
+export function isObjectiveComplete(
+  objective: QuestObjective,
+  known: readonly string[],
+  locationStates: Record<string, LocationState>,
+): boolean {
+  if (objective.knowledgeId !== undefined && !known.includes(objective.knowledgeId)) {
+    return false;
+  }
+  if (objective.locationId !== undefined && locationStates[objective.locationId] !== "completed") {
+    return false;
+  }
+  return true;
 }
